@@ -1,7 +1,5 @@
 defmodule OnFlow.Crypto do
   use Bitwise
-  alias __MODULE__.ECDSASignature
-  require ECDSASignature
 
   @doc """
   Signs the message with the given private key. Options are:
