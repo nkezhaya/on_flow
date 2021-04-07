@@ -77,7 +77,7 @@ defmodule OnFlow do
       script: code
     })
     |> sign_envelope(keys_with_address)
-    |> send_transaction()
+    |> do_send_transaction()
     |> case do
       {:ok, %Flow.Access.TransactionResultResponse{events: events}} ->
         account_created_event = Enum.find(events, &(&1.type == "flow.AccountCreated"))
@@ -98,19 +98,105 @@ defmodule OnFlow do
     end
   end
 
-  @doc false
-  def sign_envelope(transaction, keys_with_address) do
-    address = decode16(keys_with_address.address)
-    private_key = decode16(keys_with_address.private_key)
+  @doc """
+  Sends a transaction.
+  """
+  @spec send_transaction(
+          String.t(),
+          [keys_with_address()] | keys_with_address(),
+          [keys_with_address()] | keys_with_address(),
+          address(),
+          keyword()
+        ) ::
+          {:ok | :error, Flow.Access.TransactionResultResponse.t()} | {:error, :timeout}
+  def send_transaction(script, signers, authorizers, payer, opts \\ []) do
+    signers = to_list(signers)
+    authorizers = to_list(authorizers)
+
+    if signers == [] do
+      raise "You must provide at least one signer"
+    end
+
+    if payer not in Enum.map(authorizers, &decode16(&1.address)) do
+      raise "Payer address #{inspect(payer)} not found in the list of authorizers."
+    end
+
+    # Set the proposal key. This is just the account that lends its sequence
+    # number to the transaction.
+    {:ok, %{keys: [proposer_key | _]} = proposer} = get_account(hd(signers).address)
+
+    proposal_key =
+      Flow.Entities.Transaction.ProposalKey.new(%{
+        address: proposer.address,
+        key_id: proposer_key.index,
+        sequence_number: proposer_key.sequence_number
+      })
+
+    authorizer_addresses = for a <- authorizers, do: decode16(a.address)
+
+    args = Keyword.get(opts, :arguments, [])
+
+    Flow.Entities.Transaction.new(%{
+      arguments: parse_args(args),
+      authorizers: authorizer_addresses,
+      payer: decode16(payer),
+      proposal_key: proposal_key,
+      reference_block_id: get_latest_block_id(),
+      script: script
+    })
+    |> maybe_sign_payload(signers)
+    |> sign_envelope(signers)
+    |> do_send_transaction()
+  end
+
+  defp to_list(list) when is_list(list), do: list
+  defp to_list(item), do: [item]
+
+  defp maybe_sign_payload(transaction, signers) when is_list(signers) do
+    Enum.map(signers, &sign_payload(transaction, &1))
+  end
+
+  # Special case: if an account is both the payer and either a proposer or
+  # authorizer, it is only required to sign the envelope.
+  defp sign_payload(transaction, signer) do
+    decoded_address = decode16(signer.address)
+    payer? = decoded_address == transaction.payer
+    authorizer? = decoded_address in transaction.authorizers
+    proposer? = decoded_address == transaction.proposal_key.address
+
+    if payer? and (authorizer? or proposer?) do
+      transaction
+    else
+      do_sign_payload(transaction, signer)
+    end
+  end
+
+  defp do_sign_payload(transaction, signer) do
+    address = decode16(signer.address)
+    private_key = decode16(signer.private_key)
+    rlp = payload_canonical_form(transaction)
+    signer_signature = build_signature(address, private_key, rlp)
+    signatures = transaction.payload_signatures ++ [signer_signature]
+
+    %{transaction | payload_signatures: signatures}
+  end
+
+  defp sign_envelope(transaction, signers) when is_list(signers) do
+    Enum.map(signers, &sign_envelope(transaction, &1))
+  end
+
+  defp sign_envelope(transaction, signer) do
+    address = decode16(signer.address)
+    private_key = decode16(signer.private_key)
     rlp = envelope_canonical_form(transaction)
-    payer_signature = build_signature(address, private_key, rlp)
-    signatures = transaction.envelope_signatures ++ [payer_signature]
+    signer_signature = build_signature(address, private_key, rlp)
+    signatures = transaction.envelope_signatures ++ [signer_signature]
 
     %{transaction | envelope_signatures: signatures}
   end
 
   @doc false
-  def send_transaction(transaction) do
+  defp do_send_transaction(transaction) do
     request = Flow.Access.SendTransactionRequest.new(%{transaction: transaction})
 
     case Flow.Access.AccessAPI.Stub.send_transaction(get_channel(), request) do
@@ -139,7 +225,7 @@ defmodule OnFlow do
 
   defp do_get_transaction_result(id, num_attempts \\ 0)
 
-  defp do_get_transaction_result(_id, n) when n > 10 do
+  defp do_get_transaction_result(_id, n) when n > 20 do
     {:error, :timeout}
   end
 
