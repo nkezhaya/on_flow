@@ -116,20 +116,19 @@ defmodule OnFlow do
 
   defp do_get_transaction_result(id, num_attempts \\ 0)
 
-  defp do_get_transaction_result(_id, n) when n > 2 do
+  defp do_get_transaction_result(_id, n) when n > 10 do
     raise "Exceeded attempt count"
   end
 
   defp do_get_transaction_result(id, num_attempts) do
-    req = Flow.Access.GetTransactionRequest.new(%{id: id})
+    req = Flow.Access.GetTransactionRequest.new(%{id: decode16(id)})
 
     Flow.Access.AccessAPI.Stub.get_transaction_result(get_channel(), req)
     |> case do
       {:ok, %Flow.Access.TransactionResultResponse{status: :SEALED}} = response ->
         response
 
-      {:ok, %Flow.Access.TransactionResultResponse{status: s}} ->
-        IO.inspect(s)
+      {:ok, %Flow.Access.TransactionResultResponse{status: _}} ->
         :timer.sleep(1000)
         do_get_transaction_result(id, num_attempts + 1)
 
