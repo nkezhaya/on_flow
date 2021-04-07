@@ -36,6 +36,26 @@ defmodule OnFlow.Util do
   def decode16(key), do: Base.decode16!(key, case: :mixed)
 
   @doc """
+  Trims "0x" off the given string.
+
+      iex> trim_0x("")
+      ""
+
+      iex> trim_0x("666f6f")
+      "666f6f"
+
+      iex> trim_0x("0x666f6f")
+      "666f6f"
+
+      iex> trim_0x("0X666f6f")
+      "666f6f"
+  """
+  @spec trim_0x(String.t()) :: String.t()
+  def trim_0x("0x" <> bin), do: bin
+  def trim_0x("0X" <> bin), do: bin
+  def trim_0x(bin), do: bin
+
+  @doc """
   Pads a given binary or list of binaries with null bytes until the given binary
   reaches the given byte size. `direction` can be either `:left` or `:right`,
   but defaults to `:left`.
@@ -61,7 +81,7 @@ defmodule OnFlow.Util do
     for item <- list, do: pad(item, count, direction)
   end
 
-  def pad(b, count, _direction) when count <= 0, do: b
+  def pad(bin, count, _direction) when count <= 0, do: bin
   def pad("", _count, _direction), do: ""
   def pad(bin, count, :left), do: :binary.copy(<<0>>, count - byte_size(bin)) <> bin
   def pad(bin, count, :right), do: bin <> :binary.copy(<<0>>, count - byte_size(bin))

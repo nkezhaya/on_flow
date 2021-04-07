@@ -5,6 +5,7 @@ defmodule OnFlow do
   @type account() :: Flow.Entities.Account.t()
   @type address() :: binary()
   @type error() :: {:error, GRPC.RPCError.t()}
+  @type hex_string() :: String.t()
 
   @type keys_with_address() :: %{
           required(:address) => String.t(),
@@ -25,7 +26,14 @@ defmodule OnFlow do
   Creates a Flow account. Note that an existing account must be passed in as the
   first argument, since internally this is executed as a transaction on the
   existing account.
+
+  On success, it returns `{:ok, address}`, where `address` is a hex-encoded
+  representation of the address.
+
+  On failure, it returns `{:error, response}` or `{:error, :timeout}`.
   """
+  @spec create_account(keys_with_address(), hex_string()) ::
+          {:ok, hex_string()} | {:error, :timeout | Flow.Access.TransactionResultResponse.t()}
   def create_account(keys_with_address, public_key) do
     code = render_create_account()
     {:ok, existing_account} = get_account(keys_with_address.address)
@@ -60,19 +68,34 @@ defmodule OnFlow do
         sequence_number: existing_account_key.sequence_number
       })
 
-    transaction =
-      Flow.Entities.Transaction.new(%{
-        arguments: parse_args(args),
-        authorizers: [decode16(keys_with_address.address)],
-        payer: decode16(keys_with_address.address),
-        proposal_key: proposal_key,
-        reference_block_id: get_latest_block_id(),
-        script: code
-      })
+    Flow.Entities.Transaction.new(%{
+      arguments: parse_args(args),
+      authorizers: [decode16(keys_with_address.address)],
+      payer: decode16(keys_with_address.address),
+      proposal_key: proposal_key,
+      reference_block_id: get_latest_block_id(),
+      script: code
+    })
+    |> sign_envelope(keys_with_address)
+    |> send_transaction()
+    |> case do
+      {:ok, %Flow.Access.TransactionResultResponse{events: events}} ->
+        account_created_event = Enum.find(events, &(&1.type == "flow.AccountCreated"))
 
-    transaction = sign_envelope(transaction, keys_with_address)
+        %{
+          "type" => "Event",
+          "value" => %{
+            "fields" => [
+              %{"name" => "address", "value" => %{"type" => "Address", "value" => address}}
+            ]
+          }
+        } = Jason.decode!(account_created_event.payload)
 
-    send_transaction(transaction)
+        {:ok, trim_0x(address)}
+
+      error ->
+        error
+    end
   end
 
   @doc false
@@ -117,7 +140,7 @@ defmodule OnFlow do
   defp do_get_transaction_result(id, num_attempts \\ 0)
 
   defp do_get_transaction_result(_id, n) when n > 10 do
-    raise "Exceeded attempt count"
+    {:error, :timeout}
   end
 
   defp do_get_transaction_result(id, num_attempts) do
