@@ -8,6 +8,8 @@ defmodule OnFlow do
   @type address() :: binary()
   @type error() :: {:error, GRPC.RPCError.t()}
   @type hex_string() :: String.t()
+  @type transaction_result() ::
+          {:ok | :error, OnFlow.Access.TransactionResultResponse.t()} | {:error, :timeout}
 
   @doc """
   Creates a Flow account. Note that an existing account must be passed in as the
@@ -20,7 +22,7 @@ defmodule OnFlow do
   On failure, it returns `{:error, response}` or `{:error, :timeout}`.
   """
   @spec create_account(Credentials.t(), hex_string()) ::
-          {:ok, hex_string()} | {:error, :timeout | OnFlow.Access.TransactionResultResponse.t()}
+          {:ok, hex_string()} | transaction_result()
   def create_account(%Credentials{} = credentials, public_key) do
     encoded_account_key =
       OnFlow.Entities.AccountKey.new(%{
@@ -47,8 +49,7 @@ defmodule OnFlow do
     send_transaction(render_create_account(), credentials,
       arguments: arguments,
       authorizers: credentials,
-      payer: credentials,
-      wait_until_sealed?: true
+      payer: credentials
     )
     |> case do
       {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
@@ -71,6 +72,39 @@ defmodule OnFlow do
   end
 
   @doc """
+  Deploys a contract to an account. This just takes in existing account
+  credentials, the name of the contract, and the contract code. Internally, this
+  is just a single-signer, single-authorizer transaction.
+
+  Options:
+
+    * `:update?` - either `true` or `false` to update a previously deployed
+    contract with the same name.
+  """
+  @spec deploy_contract(Credentials.t(), String.t(), String.t(), keyword()) ::
+          transaction_result()
+  def deploy_contract(%Credentials{} = credentials, name, contract, opts \\ []) do
+    arguments = [
+      %{"type" => "String", "value" => name},
+      %{"type" => "String", "value" => encode16(contract)}
+    ]
+
+    case Keyword.fetch(opts, :update?) do
+      {:ok, update?} when is_boolean(update?) -> update?
+      :error -> false
+    end
+    |> case do
+      true -> render_update_account_contract()
+      false -> render_add_account_contract()
+    end
+    |> send_transaction(credentials,
+      arguments: arguments,
+      authorizers: credentials,
+      payer: credentials
+    )
+  end
+
+  @doc """
   Sends a transaction. Options:
 
     * `:args` - the list of objects that will be sent along with the
@@ -84,7 +118,7 @@ defmodule OnFlow do
     :timeout}`. Defaults to `true`.
   """
   @spec send_transaction(String.t(), [Credentials.t()] | Credentials.t(), keyword()) ::
-          {:ok | :error, OnFlow.Access.TransactionResultResponse.t()} | {:error, :timeout}
+          transaction_result()
   def send_transaction(script, signers, opts \\ []) do
     signers = to_list(signers)
     authorizers = to_list(Keyword.get(opts, :authorizers, []))
@@ -277,10 +311,12 @@ defmodule OnFlow do
 
   require EEx
 
-  EEx.function_from_file(
-    :defp,
-    :render_create_account,
-    "lib/on_flow/templates/create_account.cdc.eex",
-    []
-  )
+  for template <- ~w(create_account add_account_contract update_account_contract)a do
+    EEx.function_from_file(
+      :defp,
+      :"render_#{template}",
+      "lib/on_flow/templates/#{template}.cdc.eex",
+      []
+    )
+  end
 end
