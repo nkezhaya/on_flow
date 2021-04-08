@@ -1,21 +1,18 @@
 # OnFlow
 
-**TODO: Add description**
+OnFlow is an Elixir client for interacting with the Flow blockchain.
+Documentation here: [https://hexdocs.pm/on_flow](https://hexdocs.pm/on_flow).
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `on_flow` to your list of dependencies in `mix.exs`:
+Note that the GRPC and cowlib libraries are required:
 
 ```elixir
 def deps do
   [
-    {:on_flow, "~> 0.1.0"}
+    {:on_flow, "~> 0.1"},
+    {:grpc, github: "elixir-grpc/grpc"},
+    {:cowlib, "~> 2.9", override: true}
   ]
 end
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/on_flow](https://hexdocs.pm/on_flow).
-
