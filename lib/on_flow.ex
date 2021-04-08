@@ -21,11 +21,7 @@ defmodule OnFlow do
   """
   @spec create_account(Credentials.t(), hex_string()) ::
           {:ok, hex_string()} | {:error, :timeout | OnFlow.Access.TransactionResultResponse.t()}
-  def create_account(%Credentials{address: existing_address} = credentials, public_key) do
-    code = render_create_account()
-    {:ok, existing_account} = get_account(existing_address)
-    existing_account_key = hd(existing_account.keys)
-
+  def create_account(%Credentials{} = credentials, public_key) do
     encoded_account_key =
       OnFlow.Entities.AccountKey.new(%{
         public_key: decode16(public_key),
@@ -35,7 +31,7 @@ defmodule OnFlow do
       })
       |> ExRLP.encode(encoding: :hex)
 
-    args = [
+    arguments = [
       %{
         type: "Array",
         value: [
@@ -48,23 +44,12 @@ defmodule OnFlow do
       %{type: "Dictionary", value: []}
     ]
 
-    proposal_key =
-      OnFlow.Entities.Transaction.ProposalKey.new(%{
-        address: existing_account.address,
-        key_id: existing_account_key.index,
-        sequence_number: existing_account_key.sequence_number
-      })
-
-    OnFlow.Entities.Transaction.new(%{
-      arguments: parse_args(args),
-      authorizers: [decode16(existing_address)],
-      payer: decode16(existing_address),
-      proposal_key: proposal_key,
-      reference_block_id: get_latest_block_id(),
-      script: code
-    })
-    |> sign_envelope(credentials)
-    |> do_send_transaction(wait_until_sealed?: true)
+    send_transaction(render_create_account(), credentials,
+      arguments: arguments,
+      authorizers: credentials,
+      payer: credentials,
+      wait_until_sealed?: true
+    )
     |> case do
       {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
         account_created_event = Enum.find(events, &(&1.type == "flow.AccountCreated"))
@@ -88,21 +73,28 @@ defmodule OnFlow do
   @doc """
   Sends a transaction. Options:
 
+    * `:args` - the list of objects that will be sent along with the
+    transaction. This must be an Elixir list that can be encoded to JSON.
+    * `:authorizers` - a list of authorizing `%Credentials{}` structs to
+    authorize the transaction.
+    * `:payer` - a hex-encoded address or `%Credentials{}` struct that will pay
+    for the transaction.
     * `:wait_until_sealed?` - either `true` or `false`. Note that if the
     transaction is not sealed after 30 seconds, this will return `{:error,
     :timeout}`. Defaults to `true`.
   """
-  @spec send_transaction(
-          String.t(),
-          [Credentials.t()] | Credentials.t(),
-          [Credentials.t()] | Credentials.t(),
-          address(),
-          keyword()
-        ) ::
+  @spec send_transaction(String.t(), [Credentials.t()] | Credentials.t(), keyword()) ::
           {:ok | :error, OnFlow.Access.TransactionResultResponse.t()} | {:error, :timeout}
-  def send_transaction(script, signers, authorizers, payer, opts \\ []) do
+  def send_transaction(script, signers, opts \\ []) do
     signers = to_list(signers)
-    authorizers = to_list(authorizers)
+    authorizers = to_list(Keyword.get(opts, :authorizers, []))
+
+    payer =
+      case Keyword.get(opts, :payer) do
+        %Credentials{address: address} -> address
+        payer when is_binary(payer) -> payer
+      end
+      |> decode16()
 
     if signers == [] do
       raise "You must provide at least one signer"
@@ -136,7 +128,7 @@ defmodule OnFlow do
     OnFlow.Entities.Transaction.new(%{
       arguments: parse_args(args),
       authorizers: authorizer_addresses,
-      payer: decode16(payer),
+      payer: payer,
       proposal_key: proposal_key,
       reference_block_id: get_latest_block_id(),
       script: script
@@ -150,22 +142,20 @@ defmodule OnFlow do
   defp to_list(item), do: [item]
 
   defp maybe_sign_payload(transaction, signers) when is_list(signers) do
-    Enum.map(signers, &sign_payload(transaction, &1))
-  end
+    # Special case: if an account is both the payer and either a proposer or
+    # authorizer, it is only required to sign the envelope.
+    Enum.reduce(signers, transaction, fn signer, transaction ->
+      decoded_address = decode16(signer.address)
+      payer? = decoded_address == transaction.payer
+      authorizer? = decoded_address in transaction.authorizers
+      proposer? = decoded_address == transaction.proposal_key.address
 
-  # Special case: if an account is both the payer and either a proposer or
-  # authorizer, it is only required to sign the envelope.
-  defp sign_payload(transaction, signer) do
-    decoded_address = decode16(signer.address)
-    payer? = decoded_address == transaction.payer
-    authorizer? = decoded_address in transaction.authorizers
-    proposer? = decoded_address == transaction.proposal_key.address
-
-    if payer? and (authorizer? or proposer?) do
-      transaction
-    else
-      do_sign_payload(transaction, signer)
-    end
+      if payer? and (authorizer? or proposer?) do
+        transaction
+      else
+        do_sign_payload(transaction, signer)
+      end
+    end)
   end
 
   defp do_sign_payload(transaction, signer) do
@@ -179,7 +169,9 @@ defmodule OnFlow do
   end
 
   defp sign_envelope(transaction, signers) when is_list(signers) do
-    Enum.map(signers, &sign_envelope(transaction, &1))
+    Enum.reduce(signers, transaction, fn signer, transaction ->
+      sign_envelope(transaction, signer)
+    end)
   end
 
   defp sign_envelope(transaction, signer) do
