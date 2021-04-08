@@ -32,8 +32,9 @@ defmodule OnFlow.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:grpc, github: "elixir-grpc/grpc"},
-      {:cowlib, "~> 2.9", override: true},
+      {:ex_doc, ">= 0.0.0", only: :dev},
+      {:grpc, github: "elixir-grpc/grpc", only: :dev},
+      {:cowlib, "~> 2.9", only: :dev, override: true},
       {:jason, ">= 0.0.0"},
       {:ex_rlp, ">= 0.0.0"}
     ]
@@ -49,11 +50,10 @@ defmodule OnFlow.MixProject do
     [
       name: :on_flow,
       files: [
-        "assets",
         "lib/on_flow.ex",
         "lib/on_flow",
+        "lib/google",
         "mix.exs",
-        "package.json",
         "README.md",
         "LICENSE"
       ],
