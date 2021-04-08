@@ -10,7 +10,7 @@ defmodule OnFlowTest do
     authorizers = [<<9, 9, 9, 9, 9>>, <<8, 9, 9, 9, 9>>]
 
     proposal_key =
-      Flow.Entities.Transaction.ProposalKey.new(%{
+      OnFlow.Entities.Transaction.ProposalKey.new(%{
         address: <<4, 5, 4, 5, 4, 5>>,
         key_id: 11,
         sequence_number: 7
@@ -21,7 +21,7 @@ defmodule OnFlowTest do
     reference_block_id = <<3, 3, 3, 6, 6, 6>>
 
     transaction =
-      Flow.Entities.Transaction.new(%{
+      OnFlow.Entities.Transaction.new(%{
         script: script,
         arguments: arguments,
         authorizers: authorizers,
@@ -42,13 +42,13 @@ defmodule OnFlowTest do
 
     # Test the envelope
     foo_signature =
-      Flow.Entities.Transaction.Signature.new(%{
+      OnFlow.Entities.Transaction.Signature.new(%{
         key_id: 0,
         signature: <<4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4>>
       })
 
     bar_signature =
-      Flow.Entities.Transaction.Signature.new(%{
+      OnFlow.Entities.Transaction.Signature.new(%{
         key_id: 5,
         signature: <<3, 3, 3>>
       })
@@ -66,13 +66,13 @@ defmodule OnFlowTest do
 
   test "hash and sign", %{transaction: transaction} do
     foo_signature =
-      Flow.Entities.Transaction.Signature.new(%{
+      OnFlow.Entities.Transaction.Signature.new(%{
         key_id: 0,
         signature: <<4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4>>
       })
 
     bar_signature =
-      Flow.Entities.Transaction.Signature.new(%{
+      OnFlow.Entities.Transaction.Signature.new(%{
         key_id: 5,
         signature: <<3, 3, 3>>
       })
@@ -107,7 +107,7 @@ defmodule OnFlowTest do
     gas_limit = 1000
 
     proposal_key =
-      Flow.Entities.Transaction.ProposalKey.new(%{
+      OnFlow.Entities.Transaction.ProposalKey.new(%{
         address: decode16(address),
         key_id: 0,
         sequence_number: 0
@@ -117,7 +117,7 @@ defmodule OnFlowTest do
     authorizers = [decode16(address)]
 
     transaction =
-      Flow.Entities.Transaction.new(%{
+      OnFlow.Entities.Transaction.new(%{
         script: script,
         arguments: arguments,
         authorizers: authorizers,
