@@ -1,4 +1,4 @@
-defmodule Flow.Entities.BlockSeal do
+defmodule OnFlow.Entities.BlockSeal do
   @moduledoc false
   use Protobuf, syntax: :proto3
 

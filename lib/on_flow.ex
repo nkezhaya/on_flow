@@ -2,7 +2,7 @@ defmodule OnFlow do
   import __MODULE__.Channel, only: [get_channel: 0]
   import __MODULE__.{Util, Transaction}
 
-  @type account() :: Flow.Entities.Account.t()
+  @type account() :: OnFlow.Entities.Account.t()
   @type address() :: binary()
   @type error() :: {:error, GRPC.RPCError.t()}
   @type hex_string() :: String.t()
@@ -33,14 +33,14 @@ defmodule OnFlow do
   On failure, it returns `{:error, response}` or `{:error, :timeout}`.
   """
   @spec create_account(keys_with_address(), hex_string()) ::
-          {:ok, hex_string()} | {:error, :timeout | Flow.Access.TransactionResultResponse.t()}
+          {:ok, hex_string()} | {:error, :timeout | OnFlow.Access.TransactionResultResponse.t()}
   def create_account(keys_with_address, public_key) do
     code = render_create_account()
     {:ok, existing_account} = get_account(keys_with_address.address)
     existing_account_key = hd(existing_account.keys)
 
     encoded_account_key =
-      Flow.Entities.AccountKey.new(%{
+      OnFlow.Entities.AccountKey.new(%{
         public_key: decode16(public_key),
         weight: 1000,
         sign_algo: 2,
@@ -62,13 +62,13 @@ defmodule OnFlow do
     ]
 
     proposal_key =
-      Flow.Entities.Transaction.ProposalKey.new(%{
+      OnFlow.Entities.Transaction.ProposalKey.new(%{
         address: existing_account.address,
         key_id: existing_account_key.index,
         sequence_number: existing_account_key.sequence_number
       })
 
-    Flow.Entities.Transaction.new(%{
+    OnFlow.Entities.Transaction.new(%{
       arguments: parse_args(args),
       authorizers: [decode16(keys_with_address.address)],
       payer: decode16(keys_with_address.address),
@@ -79,7 +79,7 @@ defmodule OnFlow do
     |> sign_envelope(keys_with_address)
     |> do_send_transaction()
     |> case do
-      {:ok, %Flow.Access.TransactionResultResponse{events: events}} ->
+      {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
         account_created_event = Enum.find(events, &(&1.type == "flow.AccountCreated"))
 
         %{
@@ -108,7 +108,7 @@ defmodule OnFlow do
           address(),
           keyword()
         ) ::
-          {:ok | :error, Flow.Access.TransactionResultResponse.t()} | {:error, :timeout}
+          {:ok | :error, OnFlow.Access.TransactionResultResponse.t()} | {:error, :timeout}
   def send_transaction(script, signers, authorizers, payer, opts \\ []) do
     signers = to_list(signers)
     authorizers = to_list(authorizers)
@@ -126,7 +126,7 @@ defmodule OnFlow do
     {:ok, %{keys: [proposer_key | _]} = proposer} = get_account(hd(signers).address)
 
     proposal_key =
-      Flow.Entities.Transaction.ProposalKey.new(%{
+      OnFlow.Entities.Transaction.ProposalKey.new(%{
         address: proposer.address,
         key_id: proposer_key.index,
         sequence_number: proposer_key.sequence_number
@@ -136,7 +136,7 @@ defmodule OnFlow do
 
     args = Keyword.get(opts, :arguments, [])
 
-    Flow.Entities.Transaction.new(%{
+    OnFlow.Entities.Transaction.new(%{
       arguments: parse_args(args),
       authorizers: authorizer_addresses,
       payer: decode16(payer),
@@ -197,9 +197,9 @@ defmodule OnFlow do
 
   @doc false
   defp do_send_transaction(transaction) do
-    request = Flow.Access.SendTransactionRequest.new(%{transaction: transaction})
+    request = OnFlow.Access.SendTransactionRequest.new(%{transaction: transaction})
 
-    case Flow.Access.AccessAPI.Stub.send_transaction(get_channel(), request) do
+    case OnFlow.Access.AccessAPI.Stub.send_transaction(get_channel(), request) do
       {:ok, %{id: id}} -> get_transaction_result(encode16(id))
       error -> error
     end
@@ -211,9 +211,9 @@ defmodule OnFlow do
   """
   def get_latest_block_id do
     {:ok, %{block: %{id: latest_block_id}}} =
-      Flow.Access.AccessAPI.Stub.get_latest_block(
+      OnFlow.Access.AccessAPI.Stub.get_latest_block(
         get_channel(),
-        Flow.Access.GetLatestBlockRequest.new()
+        OnFlow.Access.GetLatestBlockRequest.new()
       )
 
     latest_block_id
@@ -230,14 +230,14 @@ defmodule OnFlow do
   end
 
   defp do_get_transaction_result(id, num_attempts) do
-    req = Flow.Access.GetTransactionRequest.new(%{id: decode16(id)})
+    req = OnFlow.Access.GetTransactionRequest.new(%{id: decode16(id)})
 
-    Flow.Access.AccessAPI.Stub.get_transaction_result(get_channel(), req)
+    OnFlow.Access.AccessAPI.Stub.get_transaction_result(get_channel(), req)
     |> case do
-      {:ok, %Flow.Access.TransactionResultResponse{status: :SEALED}} = response ->
+      {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED}} = response ->
         response
 
-      {:ok, %Flow.Access.TransactionResultResponse{status: _}} ->
+      {:ok, %OnFlow.Access.TransactionResultResponse{status: _}} ->
         :timer.sleep(1000)
         do_get_transaction_result(id, num_attempts + 1)
 
@@ -252,9 +252,9 @@ defmodule OnFlow do
   @spec get_account(address()) :: {:ok, account()} | error()
   def get_account(address) do
     address = decode16(address)
-    req = Flow.Access.GetAccountRequest.new(%{address: address})
+    req = OnFlow.Access.GetAccountRequest.new(%{address: address})
 
-    case Flow.Access.AccessAPI.Stub.get_account(get_channel(), req) do
+    case OnFlow.Access.AccessAPI.Stub.get_account(get_channel(), req) do
       {:ok, %{account: account}} -> {:ok, account}
       error -> error
     end
@@ -262,15 +262,15 @@ defmodule OnFlow do
 
   def execute_script(code, args \\ []) do
     request =
-      Flow.Access.ExecuteScriptAtLatestBlockRequest.new(%{
+      OnFlow.Access.ExecuteScriptAtLatestBlockRequest.new(%{
         arguments: parse_args(args),
         script: code
       })
 
     get_channel()
-    |> Flow.Access.AccessAPI.Stub.execute_script_at_latest_block(request)
+    |> OnFlow.Access.AccessAPI.Stub.execute_script_at_latest_block(request)
     |> case do
-      {:ok, %Flow.Access.ExecuteScriptResponse{value: response}} -> {:ok, Jason.decode!(response)}
+      {:ok, %OnFlow.Access.ExecuteScriptResponse{value: response}} -> {:ok, Jason.decode!(response)}
       {:error, _} = result -> result
     end
   end

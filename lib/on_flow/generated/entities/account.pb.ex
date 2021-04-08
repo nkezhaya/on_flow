@@ -1,4 +1,4 @@
-defmodule Flow.Entities.Account.ContractsEntry do
+defmodule OnFlow.Entities.Account.ContractsEntry do
   @moduledoc false
   use Protobuf, map: true, syntax: :proto3
 
@@ -13,7 +13,7 @@ defmodule Flow.Entities.Account.ContractsEntry do
   field :value, 2, type: :bytes
 end
 
-defmodule Flow.Entities.Account do
+defmodule OnFlow.Entities.Account do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -21,7 +21,7 @@ defmodule Flow.Entities.Account do
           address: binary,
           balance: non_neg_integer,
           code: binary,
-          keys: [Flow.Entities.AccountKey.t()],
+          keys: [OnFlow.Entities.AccountKey.t()],
           contracts: %{String.t() => binary}
         }
 
@@ -30,11 +30,11 @@ defmodule Flow.Entities.Account do
   field :address, 1, type: :bytes
   field :balance, 2, type: :uint64
   field :code, 3, type: :bytes
-  field :keys, 4, repeated: true, type: Flow.Entities.AccountKey
-  field :contracts, 5, repeated: true, type: Flow.Entities.Account.ContractsEntry, map: true
+  field :keys, 4, repeated: true, type: OnFlow.Entities.AccountKey
+  field :contracts, 5, repeated: true, type: OnFlow.Entities.Account.ContractsEntry, map: true
 end
 
-defmodule Flow.Entities.AccountKey do
+defmodule OnFlow.Entities.AccountKey do
   @moduledoc false
   use Protobuf, syntax: :proto3
 

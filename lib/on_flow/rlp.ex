@@ -1,8 +1,8 @@
-defimpl ExRLP.Encode, for: Flow.Entities.Transaction do
+defimpl ExRLP.Encode, for: OnFlow.Entities.Transaction do
   alias ExRLP.Encode
 
-  @spec encode(Flow.Entities.Transaction.t(), keyword()) :: binary()
-  def encode(%Flow.Entities.Transaction{} = transaction, options \\ []) do
+  @spec encode(OnFlow.Entities.Transaction.t(), keyword()) :: binary()
+  def encode(%OnFlow.Entities.Transaction{} = transaction, options \\ []) do
     [
       transaction.script,
       transaction.arguments,
@@ -18,11 +18,11 @@ defimpl ExRLP.Encode, for: Flow.Entities.Transaction do
   end
 end
 
-defimpl ExRLP.Encode, for: Flow.Entities.AccountKey do
+defimpl ExRLP.Encode, for: OnFlow.Entities.AccountKey do
   alias ExRLP.Encode
 
-  @spec encode(Flow.Entities.AccountKey.t(), keyword()) :: binary()
-  def encode(%Flow.Entities.AccountKey{} = account_key, options \\ []) do
+  @spec encode(OnFlow.Entities.AccountKey.t(), keyword()) :: binary()
+  def encode(%OnFlow.Entities.AccountKey{} = account_key, options \\ []) do
     [
       account_key.public_key,
       account_key.sign_algo,

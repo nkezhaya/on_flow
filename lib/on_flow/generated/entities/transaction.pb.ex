@@ -1,4 +1,4 @@
-defmodule Flow.Entities.TransactionStatus do
+defmodule OnFlow.Entities.TransactionStatus do
   @moduledoc false
   use Protobuf, enum: true, syntax: :proto3
   @type t :: integer | :UNKNOWN | :PENDING | :FINALIZED | :EXECUTED | :SEALED | :EXPIRED
@@ -16,7 +16,7 @@ defmodule Flow.Entities.TransactionStatus do
   field :EXPIRED, 5
 end
 
-defmodule Flow.Entities.Transaction.ProposalKey do
+defmodule OnFlow.Entities.Transaction.ProposalKey do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -33,7 +33,7 @@ defmodule Flow.Entities.Transaction.ProposalKey do
   field :sequence_number, 3, type: :uint64
 end
 
-defmodule Flow.Entities.Transaction.Signature do
+defmodule OnFlow.Entities.Transaction.Signature do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -50,7 +50,7 @@ defmodule Flow.Entities.Transaction.Signature do
   field :signature, 3, type: :bytes
 end
 
-defmodule Flow.Entities.Transaction do
+defmodule OnFlow.Entities.Transaction do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -59,11 +59,11 @@ defmodule Flow.Entities.Transaction do
           arguments: [binary],
           reference_block_id: binary,
           gas_limit: non_neg_integer,
-          proposal_key: Flow.Entities.Transaction.ProposalKey.t() | nil,
+          proposal_key: OnFlow.Entities.Transaction.ProposalKey.t() | nil,
           payer: binary,
           authorizers: [binary],
-          payload_signatures: [Flow.Entities.Transaction.Signature.t()],
-          envelope_signatures: [Flow.Entities.Transaction.Signature.t()]
+          payload_signatures: [OnFlow.Entities.Transaction.Signature.t()],
+          envelope_signatures: [OnFlow.Entities.Transaction.Signature.t()]
         }
 
   defstruct [
@@ -82,9 +82,9 @@ defmodule Flow.Entities.Transaction do
   field :arguments, 2, repeated: true, type: :bytes
   field :reference_block_id, 3, type: :bytes
   field :gas_limit, 4, type: :uint64
-  field :proposal_key, 5, type: Flow.Entities.Transaction.ProposalKey
+  field :proposal_key, 5, type: OnFlow.Entities.Transaction.ProposalKey
   field :payer, 6, type: :bytes
   field :authorizers, 7, repeated: true, type: :bytes
-  field :payload_signatures, 8, repeated: true, type: Flow.Entities.Transaction.Signature
-  field :envelope_signatures, 9, repeated: true, type: Flow.Entities.Transaction.Signature
+  field :payload_signatures, 8, repeated: true, type: OnFlow.Entities.Transaction.Signature
+  field :envelope_signatures, 9, repeated: true, type: OnFlow.Entities.Transaction.Signature
 end

@@ -1,4 +1,4 @@
-defmodule Flow.Entities.BlockHeader do
+defmodule OnFlow.Entities.BlockHeader do
   @moduledoc false
   use Protobuf, syntax: :proto3
 

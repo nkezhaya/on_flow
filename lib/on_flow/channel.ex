@@ -49,10 +49,10 @@ defmodule OnFlow.Channel do
 
   @impl true
   def handle_info(:ping, channel) do
-    request = Flow.Access.PingRequest.new()
+    request = OnFlow.Access.PingRequest.new()
 
     channel
-    |> Flow.Access.AccessAPI.Stub.ping(request)
+    |> OnFlow.Access.AccessAPI.Stub.ping(request)
     |> handle_ping_response()
 
     schedule_ping()
@@ -73,7 +73,7 @@ defmodule OnFlow.Channel do
     Process.send_after(self(), :ping, 60_000)
   end
 
-  defp handle_ping_response({:ok, %Flow.Access.PingResponse{}}), do: :ok
+  defp handle_ping_response({:ok, %OnFlow.Access.PingResponse{}}), do: :ok
   defp handle_ping_response(_error), do: cast_reconnect()
 
   defp host do

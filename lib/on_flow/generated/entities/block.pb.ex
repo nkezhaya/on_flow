@@ -1,4 +1,4 @@
-defmodule Flow.Entities.Block do
+defmodule OnFlow.Entities.Block do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -7,8 +7,8 @@ defmodule Flow.Entities.Block do
           parent_id: binary,
           height: non_neg_integer,
           timestamp: Google.Protobuf.Timestamp.t() | nil,
-          collection_guarantees: [Flow.Entities.CollectionGuarantee.t()],
-          block_seals: [Flow.Entities.BlockSeal.t()],
+          collection_guarantees: [OnFlow.Entities.CollectionGuarantee.t()],
+          block_seals: [OnFlow.Entities.BlockSeal.t()],
           signatures: [binary]
         }
 
@@ -26,7 +26,7 @@ defmodule Flow.Entities.Block do
   field :parent_id, 2, type: :bytes
   field :height, 3, type: :uint64
   field :timestamp, 4, type: Google.Protobuf.Timestamp
-  field :collection_guarantees, 5, repeated: true, type: Flow.Entities.CollectionGuarantee
-  field :block_seals, 6, repeated: true, type: Flow.Entities.BlockSeal
+  field :collection_guarantees, 5, repeated: true, type: OnFlow.Entities.CollectionGuarantee
+  field :block_seals, 6, repeated: true, type: OnFlow.Entities.BlockSeal
   field :signatures, 7, repeated: true, type: :bytes
 end

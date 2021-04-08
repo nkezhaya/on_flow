@@ -3,7 +3,7 @@ defmodule OnFlow.Transaction do
   alias OnFlow.Crypto
 
   def build_signature(address, private_key, index \\ 0, msg) do
-    Flow.Entities.Transaction.Signature.new(%{
+    OnFlow.Entities.Transaction.Signature.new(%{
       address: address,
       key_id: index,
       signature: Crypto.sign(msg, private_key)

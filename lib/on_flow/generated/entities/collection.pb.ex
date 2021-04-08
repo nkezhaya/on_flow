@@ -1,4 +1,4 @@
-defmodule Flow.Entities.Collection do
+defmodule OnFlow.Entities.Collection do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -13,7 +13,7 @@ defmodule Flow.Entities.Collection do
   field :transaction_ids, 2, repeated: true, type: :bytes
 end
 
-defmodule Flow.Entities.CollectionGuarantee do
+defmodule OnFlow.Entities.CollectionGuarantee do
   @moduledoc false
   use Protobuf, syntax: :proto3
 

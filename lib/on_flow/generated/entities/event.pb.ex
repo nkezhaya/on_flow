@@ -1,4 +1,4 @@
-defmodule Flow.Entities.Event do
+defmodule OnFlow.Entities.Event do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
