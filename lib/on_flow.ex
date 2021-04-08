@@ -9,15 +9,6 @@ defmodule OnFlow do
   @type error() :: {:error, GRPC.RPCError.t()}
   @type hex_string() :: String.t()
 
-  def generate_keys do
-    {pubkey, privkey} = :crypto.generate_key(:ecdh, :secp256r1)
-    pubkey = encode16(pubkey)
-    privkey = encode16(privkey)
-    pubkey = String.replace_leading(pubkey, "04", "")
-
-    %{public_key: pubkey, private_key: privkey}
-  end
-
   @doc """
   Creates a Flow account. Note that an existing account must be passed in as the
   first argument, since internally this is executed as a transaction on the
