@@ -21,9 +21,9 @@ defmodule OnFlow do
   """
   @spec create_account(Credentials.t(), hex_string()) ::
           {:ok, hex_string()} | {:error, :timeout | OnFlow.Access.TransactionResultResponse.t()}
-  def create_account(keys_with_address, public_key) do
+  def create_account(%Credentials{address: existing_address} = credentials, public_key) do
     code = render_create_account()
-    {:ok, existing_account} = get_account(keys_with_address.address)
+    {:ok, existing_account} = get_account(existing_address)
     existing_account_key = hd(existing_account.keys)
 
     encoded_account_key =
@@ -57,14 +57,14 @@ defmodule OnFlow do
 
     OnFlow.Entities.Transaction.new(%{
       arguments: parse_args(args),
-      authorizers: [decode16(keys_with_address.address)],
-      payer: decode16(keys_with_address.address),
+      authorizers: [decode16(existing_address)],
+      payer: decode16(existing_address),
       proposal_key: proposal_key,
       reference_block_id: get_latest_block_id(),
       script: code
     })
-    |> sign_envelope(keys_with_address)
-    |> do_send_transaction()
+    |> sign_envelope(credentials)
+    |> do_send_transaction(wait_until_sealed?: true)
     |> case do
       {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
         account_created_event = Enum.find(events, &(&1.type == "flow.AccountCreated"))
@@ -86,7 +86,11 @@ defmodule OnFlow do
   end
 
   @doc """
-  Sends a transaction.
+  Sends a transaction. Options:
+
+    * `:wait_until_sealed?` - either `true` or `false`. Note that if the
+    transaction is not sealed after 30 seconds, this will return `{:error,
+    :timeout}`. Defaults to `true`.
   """
   @spec send_transaction(
           String.t(),
@@ -123,6 +127,12 @@ defmodule OnFlow do
 
     args = Keyword.get(opts, :arguments, [])
 
+    wait_until_sealed? =
+      case Keyword.fetch(opts, :wait_until_sealed?) do
+        {:ok, wait_until_sealed?} when is_boolean(wait_until_sealed?) -> wait_until_sealed?
+        _ -> true
+      end
+
     OnFlow.Entities.Transaction.new(%{
       arguments: parse_args(args),
       authorizers: authorizer_addresses,
@@ -133,7 +143,7 @@ defmodule OnFlow do
     })
     |> maybe_sign_payload(signers)
     |> sign_envelope(signers)
-    |> do_send_transaction()
+    |> do_send_transaction(wait_until_sealed?)
   end
 
   defp to_list(list) when is_list(list), do: list
@@ -183,12 +193,14 @@ defmodule OnFlow do
   end
 
   @doc false
-  defp do_send_transaction(transaction) do
+  defp do_send_transaction(transaction, wait_until_sealed?) do
     request = OnFlow.Access.SendTransactionRequest.new(%{transaction: transaction})
+    response = OnFlow.Access.AccessAPI.Stub.send_transaction(get_channel(), request)
 
-    case OnFlow.Access.AccessAPI.Stub.send_transaction(get_channel(), request) do
-      {:ok, %{id: id}} -> get_transaction_result(encode16(id))
-      error -> error
+    with {:ok, %{id: id}} <- response, true <- wait_until_sealed? do
+      do_get_sealed_transaction_result(encode16(id))
+    else
+      _ -> response
     end
   end
 
@@ -206,27 +218,29 @@ defmodule OnFlow do
     latest_block_id
   end
 
+  @doc """
+  Fetches the transaction result for a given transaction ID.
+  """
   def get_transaction_result(id) do
-    do_get_transaction_result(id)
-  end
-
-  defp do_get_transaction_result(id, num_attempts \\ 0)
-
-  defp do_get_transaction_result(_id, n) when n > 20 do
-    {:error, :timeout}
-  end
-
-  defp do_get_transaction_result(id, num_attempts) do
     req = OnFlow.Access.GetTransactionRequest.new(%{id: decode16(id)})
 
     OnFlow.Access.AccessAPI.Stub.get_transaction_result(get_channel(), req)
-    |> case do
+  end
+
+  defp do_get_sealed_transaction_result(id, num_attempts \\ 0)
+
+  defp do_get_sealed_transaction_result(_id, n) when n > 30 do
+    {:error, :timeout}
+  end
+
+  defp do_get_sealed_transaction_result(id, num_attempts) do
+    case get_transaction_result(id) do
       {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED}} = response ->
         response
 
       {:ok, %OnFlow.Access.TransactionResultResponse{status: _}} ->
         :timer.sleep(1000)
-        do_get_transaction_result(id, num_attempts + 1)
+        do_get_sealed_transaction_result(id, num_attempts + 1)
 
       error ->
         error
