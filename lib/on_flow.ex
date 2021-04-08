@@ -2,16 +2,12 @@ defmodule OnFlow do
   import __MODULE__.Channel, only: [get_channel: 0]
   import __MODULE__.{Util, Transaction}
 
+  alias __MODULE__.Credentials
+
   @type account() :: OnFlow.Entities.Account.t()
   @type address() :: binary()
   @type error() :: {:error, GRPC.RPCError.t()}
   @type hex_string() :: String.t()
-
-  @type keys_with_address() :: %{
-          required(:address) => String.t(),
-          required(:public_key) => String.t(),
-          required(:private_key) => String.t()
-        }
 
   def generate_keys do
     {pubkey, privkey} = :crypto.generate_key(:ecdh, :secp256r1)
@@ -32,7 +28,7 @@ defmodule OnFlow do
 
   On failure, it returns `{:error, response}` or `{:error, :timeout}`.
   """
-  @spec create_account(keys_with_address(), hex_string()) ::
+  @spec create_account(Credentials.t(), hex_string()) ::
           {:ok, hex_string()} | {:error, :timeout | OnFlow.Access.TransactionResultResponse.t()}
   def create_account(keys_with_address, public_key) do
     code = render_create_account()
@@ -103,8 +99,8 @@ defmodule OnFlow do
   """
   @spec send_transaction(
           String.t(),
-          [keys_with_address()] | keys_with_address(),
-          [keys_with_address()] | keys_with_address(),
+          [Credentials.t()] | Credentials.t(),
+          [Credentials.t()] | Credentials.t(),
           address(),
           keyword()
         ) ::
@@ -270,8 +266,11 @@ defmodule OnFlow do
     get_channel()
     |> OnFlow.Access.AccessAPI.Stub.execute_script_at_latest_block(request)
     |> case do
-      {:ok, %OnFlow.Access.ExecuteScriptResponse{value: response}} -> {:ok, Jason.decode!(response)}
-      {:error, _} = result -> result
+      {:ok, %OnFlow.Access.ExecuteScriptResponse{value: response}} ->
+        {:ok, Jason.decode!(response)}
+
+      {:error, _} = result ->
+        result
     end
   end
 
