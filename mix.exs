@@ -6,7 +6,7 @@ defmodule OnFlow.MixProject do
   def project do
     [
       app: :on_flow,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -33,8 +33,8 @@ defmodule OnFlow.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:grpc, github: "elixir-grpc/grpc", only: :dev},
-      {:cowlib, "~> 2.9", only: :dev, override: true},
+      {:grpc, ">= 0.0.0"},
+      {:cowlib, ">= 0.0.0"},
       {:jason, ">= 0.0.0"},
       {:ex_rlp, ">= 0.0.0"}
     ]
