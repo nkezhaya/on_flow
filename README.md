@@ -19,3 +19,13 @@ def deps do
   ]
 end
 ```
+
+## Configuration
+
+Point OnFlow to the GRPC server by adding the following to your
+`config/config.exs`:
+
+`config :on_flow, host: "access.testnet.nodes.onflow.org:9000"`
+
+Replace the `:host` value with the location of the server you're using. Be sure
+to use the production server in your `config/prod.exs` if applicable.
