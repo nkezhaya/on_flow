@@ -1,3 +1,3 @@
 import Config
 
-config :on_flow, host: "access.testnet.nodes.onflow.org:9000"
+config :on_flow, host: "localhost:3569", connect_on_start: true
