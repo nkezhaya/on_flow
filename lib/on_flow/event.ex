@@ -9,6 +9,9 @@ defmodule OnFlow.Event do
   @literal_types ~w(String Bool Address)
   @composite_types ~w(Struct Resource Event Contract Enum)
 
+  # Initialize atoms
+  Enum.map(@composite_types, &(String.downcase(&1) |> String.to_atom()))
+
   @type event() :: %{required(String.t()) => nil | String.t()}
   @spec decode(event()) :: term()
   def decode(%{"value" => nil}), do: nil
@@ -33,12 +36,17 @@ defmodule OnFlow.Event do
   end
 
   def decode(%{"type" => type, "value" => value}) when type in @composite_types do
+    # "Struct" -> :struct
+    type = type |> String.downcase() |> String.to_existing_atom()
     %{"id" => id, "fields" => fields} = value
 
-    for %{"name" => name, "value" => value} <- fields, into: %{} do
-      {name, decode(value)}
-    end
-    |> Map.put("id", id)
+    value =
+      for %{"name" => name, "value" => value} <- fields, into: %{} do
+        {name, decode(value)}
+      end
+      |> Map.put("id", id)
+
+    {type, value}
   end
 
   def decode(%{"type" => "Path", "value" => %{"domain" => domain, "identifier" => identifier}}),
