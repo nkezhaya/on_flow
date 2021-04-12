@@ -2,7 +2,7 @@ defmodule OnFlow do
   import __MODULE__.Channel, only: [get_channel: 0]
   import __MODULE__.{Util, Transaction}
 
-  alias __MODULE__.Credentials
+  alias __MODULE__.{Credentials, Event}
 
   @type account() :: OnFlow.Entities.Account.t()
   @type address() :: binary()
@@ -53,16 +53,11 @@ defmodule OnFlow do
     )
     |> case do
       {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
-        account_created_event = Enum.find(events, &(&1.type == "flow.AccountCreated"))
-
-        %{
-          "type" => "Event",
-          "value" => %{
-            "fields" => [
-              %{"name" => "address", "value" => %{"type" => "Address", "value" => address}}
-            ]
-          }
-        } = Jason.decode!(account_created_event.payload)
+        address =
+          Enum.find_value(events, fn
+            {:event, %{"address" => address, "id" => "flow.AccountCreated"}} -> address
+            _ -> false
+          end)
 
         {:ok, trim_0x(address)}
 
@@ -78,7 +73,7 @@ defmodule OnFlow do
 
   Options:
 
-    * `:update?` - either `true` or `false` to update a previously deployed
+    * `:update` - either `true` or `false` to update a previously deployed
     contract with the same name.
   """
   @spec deploy_contract(Credentials.t(), String.t(), String.t(), keyword()) ::
@@ -89,8 +84,8 @@ defmodule OnFlow do
       %{"type" => "String", "value" => encode16(contract)}
     ]
 
-    case Keyword.fetch(opts, :update?) do
-      {:ok, update?} when is_boolean(update?) -> update?
+    case Keyword.fetch(opts, :update) do
+      {:ok, update} when is_boolean(update) -> update
       :error -> false
     end
     |> case do
@@ -113,7 +108,7 @@ defmodule OnFlow do
     authorize the transaction.
     * `:payer` - a hex-encoded address or `%Credentials{}` struct that will pay
     for the transaction.
-    * `:wait_until_sealed?` - either `true` or `false`. Note that if the
+    * `:wait_until_sealed` - either `true` or `false`. Note that if the
     transaction is not sealed after 30 seconds, this will return `{:error,
     :timeout}`. Defaults to `true`.
   """
@@ -154,8 +149,8 @@ defmodule OnFlow do
     args = Keyword.get(opts, :arguments, [])
 
     wait_until_sealed? =
-      case Keyword.fetch(opts, :wait_until_sealed?) do
-        {:ok, wait_until_sealed?} when is_boolean(wait_until_sealed?) -> wait_until_sealed?
+      case Keyword.fetch(opts, :wait_until_sealed) do
+        {:ok, wait_until_sealed} when is_boolean(wait_until_sealed) -> wait_until_sealed
         _ -> true
       end
 
@@ -261,11 +256,19 @@ defmodule OnFlow do
 
   defp do_get_sealed_transaction_result(id, num_attempts) do
     case get_transaction_result(id) do
-      {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED}} = response ->
-        response
+      {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED} = response} ->
+        events =
+          Enum.map(response.events, fn event ->
+            event.payload
+            |> Jason.decode!()
+            |> Event.decode()
+          end)
+
+        {:ok, %{response | events: events}}
 
       {:ok, %OnFlow.Access.TransactionResultResponse{status: _}} ->
         :timer.sleep(1000)
+
         do_get_sealed_transaction_result(id, num_attempts + 1)
 
       error ->
