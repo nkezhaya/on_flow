@@ -2,7 +2,7 @@ defmodule OnFlow do
   import __MODULE__.Channel, only: [get_channel: 0]
   import __MODULE__.{Util, Transaction}
 
-  alias __MODULE__.{Credentials, Event}
+  alias __MODULE__.{Credentials, JSONCDC}
 
   @type account() :: OnFlow.Entities.Account.t()
   @type address() :: binary()
@@ -55,7 +55,7 @@ defmodule OnFlow do
       {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
         address =
           Enum.find_value(events, fn
-            {:event, %{"address" => address, "id" => "flow.AccountCreated"}} -> address
+            %{"address" => address, "id" => "flow.AccountCreated"} -> address
             _ -> false
           end)
 
@@ -259,9 +259,8 @@ defmodule OnFlow do
       {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED} = response} ->
         events =
           Enum.map(response.events, fn event ->
-            event.payload
-            |> Jason.decode!()
-            |> Event.decode()
+            {:event, event} = JSONCDC.decode!(event.payload)
+            event
           end)
 
         {:ok, %{response | events: events}}

@@ -1,5 +1,5 @@
-defmodule OnFlow.Event do
-  @doc """
+defmodule OnFlow.JSONCDC do
+  @moduledoc """
   Decodes the JSON-CDC event values into Elixir terms.
   """
 
@@ -12,8 +12,29 @@ defmodule OnFlow.Event do
   # Initialize atoms
   Enum.map(@composite_types, &(String.downcase(&1) |> String.to_atom()))
 
-  @type event() :: %{required(String.t()) => nil | String.t()}
-  @spec decode(event()) :: term()
+  @type encodable() :: String.t() | %{required(String.t()) => nil | String.t()}
+  @spec decode!(encodable()) :: term()
+  def decode!(event) do
+    case decode(event) do
+      {:ok, decoded_event} -> decoded_event
+      :error -> raise "Could not decode: #{inspect(event)}"
+    end
+  end
+
+  @spec decode(encodable()) :: {:ok, term()} | :error
+  def decode(json) when is_binary(json) do
+    case Jason.decode(json) do
+      {:ok, encodable} ->
+        case decode(encodable) do
+          :error -> :error
+          decoded -> {:ok, decoded}
+        end
+
+      _ ->
+        :error
+    end
+  end
+
   def decode(%{"value" => nil}), do: nil
   def decode(%{"type" => "Void"}), do: nil
   def decode(%{"type" => "Optional", "value" => value}), do: decode(value)
@@ -58,5 +79,9 @@ defmodule OnFlow.Event do
   def decode(%{"type" => "Capability", "value" => value}) do
     %{"path" => path, "address" => address, "borrowType" => borrow_type} = value
     {:capability, %{path: path, address: address, borrow_type: borrow_type}}
+  end
+
+  def decode(_event) do
+    :error
   end
 end
