@@ -10,15 +10,15 @@ defmodule OnFlow.Channel do
   Connects to the GRPC server. Blocks the process until a connection is
   established.
   """
-  def connect do
-    GenServer.call(__MODULE__, :connect)
+  def connect(host \\ host()) do
+    GenServer.call(__MODULE__, {:connect, host})
   end
 
   @doc """
   Connects to the GRPC server asynchronously.
   """
-  def connect_async do
-    GenServer.cast(__MODULE__, :connect_async)
+  def connect_async(host \\ host()) do
+    GenServer.cast(__MODULE__, {:connect_async, host})
   end
 
   @doc """
@@ -41,22 +41,22 @@ defmodule OnFlow.Channel do
   def init(arg) do
     schedule_ping()
 
-    connected? = connect_on_start?()
+    connect? = connect_on_start?()
 
     channel =
       case arg do
         %GRPC.Channel{} -> arg
-        _ -> if connected?, do: new_channel(), else: nil
+        _ -> if connect?, do: new_channel(host()), else: nil
       end
 
-    state = %{channel: channel, connected?: connected?}
+    state = %{channel: channel, connected?: connect?}
 
     {:ok, state}
   end
 
   @impl true
-  def handle_call(:connect, _from, state) do
-    channel = new_channel()
+  def handle_call({:connect, host}, _from, state) do
+    channel = new_channel(host)
     {:reply, channel, %{state | channel: channel}}
   end
 
@@ -65,8 +65,8 @@ defmodule OnFlow.Channel do
   end
 
   @impl true
-  def handle_cast(:connect_async, state) do
-    {:noreply, %{state | channel: new_channel()}}
+  def handle_cast({:connect_async, host}, state) do
+    {:noreply, %{state | channel: new_channel(host)}}
   end
 
   @impl true
@@ -90,8 +90,8 @@ defmodule OnFlow.Channel do
     {:noreply, state}
   end
 
-  defp new_channel do
-    {:ok, channel} = GRPC.Stub.connect(host())
+  defp new_channel(host) do
+    {:ok, channel} = GRPC.Stub.connect(host)
     channel
   end
 

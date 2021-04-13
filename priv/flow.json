@@ -1,5 +1,5 @@
 {
-	"host": "",
+	"host": "localhost:3569",
 	"accounts": {
 		"service": {
 			"address": "f8d6e0586b0a20c7",
