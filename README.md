@@ -13,7 +13,7 @@ dependency errors, you should include them both and add `override: true` to your
 ```elixir
 def deps do
   [
-    {:on_flow, "~> 0.3"},
+    {:on_flow, "~> 0.4"},
     {:grpc, github: "elixir-grpc/grpc", override: true},
     {:cowlib, "~> 2.9", override: true}
   ]
@@ -26,8 +26,15 @@ Point OnFlow to the GRPC server by adding the following to your
 `config/config.exs`:
 
 ```elixir
-config :on_flow, host: "access.testnet.nodes.onflow.org:9000"
+config :on_flow, host: "access.testnet.nodes.onflow.org:9000", connect_on_start:
+true
 ```
 
 Replace the `:host` value with the location of the server you're using. Be sure
 to use the production server in your `config/prod.exs` if applicable.
+
+Alternatively, you can skip configuration and connect manually with:
+
+```elixir
+OnFlow.Channel.connect("access.testnet.nodes.onflow.org:9000")
+```
