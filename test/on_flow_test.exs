@@ -1,5 +1,5 @@
 defmodule OnFlowTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   import OnFlow.{Transaction, Util}
   alias OnFlow.Crypto
