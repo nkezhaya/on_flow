@@ -55,11 +55,12 @@ defmodule OnFlow do
       {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
         address =
           Enum.find_value(events, fn
-            %{"address" => address, "id" => "flow.AccountCreated"} -> address
+            %{"id" => "flow.AccountCreated", "fields" => %{"address" => address}} -> address
             _ -> false
           end)
+          |> trim_0x()
 
-        {:ok, trim_0x(address)}
+        {:ok, address}
 
       error ->
         error
@@ -257,8 +258,6 @@ defmodule OnFlow do
   defp do_get_sealed_transaction_result(id, num_attempts) do
     case get_transaction_result(id) do
       {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED} = response} ->
-        IO.inspect(response)
-
         events =
           Enum.map(response.events, fn event ->
             {:event, event} = JSONCDC.decode!(event.payload)
