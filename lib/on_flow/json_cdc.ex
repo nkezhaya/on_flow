@@ -59,15 +59,14 @@ defmodule OnFlow.JSONCDC do
   def decode(%{"type" => type, "value" => value}) when type in @composite_types do
     # "Struct" -> :struct
     type = type |> String.downcase() |> String.to_existing_atom()
-    %{"id" => id, "fields" => fields} = value
+    %{"fields" => fields} = value
 
-    value =
+    fields =
       for %{"name" => name, "value" => value} <- fields, into: %{} do
         {name, decode(value)}
       end
-      |> Map.put("id", id)
 
-    {type, value}
+    {type, %{value | "fields" => fields}}
   end
 
   def decode(%{"type" => "Path", "value" => %{"domain" => domain, "identifier" => identifier}}),

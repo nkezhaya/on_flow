@@ -257,6 +257,8 @@ defmodule OnFlow do
   defp do_get_sealed_transaction_result(id, num_attempts) do
     case get_transaction_result(id) do
       {:ok, %OnFlow.Access.TransactionResultResponse{status: :SEALED} = response} ->
+        IO.inspect(response)
+
         events =
           Enum.map(response.events, fn event ->
             {:event, event} = JSONCDC.decode!(event.payload)
