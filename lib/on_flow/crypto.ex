@@ -28,7 +28,7 @@ defmodule OnFlow.Crypto do
       n
     end
 
-    start_r = if (at.(1) &&& 0x80) != 0, do: 3, else: 2
+    start_r = if (at.(1) &&& 0x80) == 1, do: 3, else: 2
     length_r = at.(start_r + 1)
     start_s = start_r + 2 + length_r
     length_s = at.(start_s + 1)
@@ -36,9 +36,30 @@ defmodule OnFlow.Crypto do
     r = binary_part(signature, start_r + 2, length_r)
     s = binary_part(signature, start_s + 2, length_s)
 
-    r = String.trim_leading(r, <<0>>)
-    s = String.trim_leading(s, <<0>>)
+    # 256 >> 3
+    n = 32
+    final_signature = :binary.copy(<<0>>, n * 2)
 
-    r <> s
+    offset_r = max(n - byte_size(r), 0)
+    start_r = max(0, byte_size(r) - n)
+    final_signature = copy_into(final_signature, r, offset_r, start_r)
+
+    offset_s = max(2 * n - byte_size(s), n)
+    start_s = max(0, byte_size(s) - n)
+    final_signature = copy_into(final_signature, s, offset_s, start_s)
+
+    final_signature
+  end
+
+  def copy_into(destination, src, destination_offset \\ 0, start_index \\ 0) do
+    destination = :binary.bin_to_list(destination)
+    {prefix, destination} = :lists.split(destination_offset, destination)
+
+    src = :binary.bin_to_list(src)
+    {_, src} = :lists.split(start_index, src)
+
+    {_replaced, destination} = :lists.split(length(src), destination)
+
+    :binary.list_to_bin(prefix ++ src ++ destination)
   end
 end
