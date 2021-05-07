@@ -2,6 +2,19 @@ defmodule OnFlow.Crypto do
   use Bitwise
 
   @doc """
+  Generates a key pair.
+  """
+  @spec generate_keys() :: %{public_key: String.t(), private_key: String.t()}
+  def generate_keys do
+    {public_key, private_key} = :crypto.generate_key(:ecdh, :secp256r1)
+    public_key = Base.encode16(public_key, case: :lower)
+    private_key = Base.encode16(private_key, case: :lower)
+    public_key = String.replace_leading(public_key, "04", "")
+
+    %{public_key: public_key, private_key: private_key}
+  end
+
+  @doc """
   Signs the message with the given private key. Options are:
 
     * `:hash`, which defaults to `:sha3_256`
