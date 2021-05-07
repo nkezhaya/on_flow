@@ -85,4 +85,25 @@ defmodule OnFlow.Util do
   def pad("", _count, _direction), do: ""
   def pad(bin, count, :left), do: :binary.copy(<<0>>, count - byte_size(bin)) <> bin
   def pad(bin, count, :right), do: bin <> :binary.copy(<<0>>, count - byte_size(bin))
+
+  @doc """
+  Returns `true` if the given term is `nil` or an empty string.
+
+      iex> empty?(nil)
+      true
+
+      iex> empty?("")
+      true
+
+      iex> empty?("  ")
+      false
+
+      iex> empty?("x")
+      false
+  """
+  @spec empty?(nil) :: true
+  @spec empty?(String.t()) :: boolean()
+  def empty?(nil), do: true
+  def empty?(""), do: true
+  def empty?(bin) when is_binary(bin), do: false
 end

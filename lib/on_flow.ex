@@ -264,7 +264,13 @@ defmodule OnFlow do
             event
           end)
 
-        {:ok, %{response | events: events}}
+        response = %{response | events: events}
+
+        if not empty?(response.error_message) do
+          {:error, response}
+        else
+          {:ok, response}
+        end
 
       {:ok, %OnFlow.Access.TransactionResultResponse{status: _}} ->
         :timer.sleep(1000)
