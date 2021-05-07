@@ -51,6 +51,7 @@ defmodule OnFlow.Crypto do
     final_signature
   end
 
+  @doc false
   def copy_into(destination, src, destination_offset \\ 0, start_index \\ 0) do
     destination = :binary.bin_to_list(destination)
     {prefix, destination} = :lists.split(destination_offset, destination)

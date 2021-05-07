@@ -12,4 +12,13 @@ defmodule OnFlow.CryptoTest do
     assert encode16(rs_pair(signature)) ==
              "cf6ec6552c9166dee8f420675717c73cc4f8c6b448ddef1ba3606168c83c2c1a00e434d7d1024e3c53d9cae5a43668a78c45bc9c71cf9f888b52bef82ce4f208"
   end
+
+  test "copy into" do
+    bin = <<0, 0, 0, 0, 0, 0, 0, 0>>
+
+    assert copy_into(bin, <<2, 3>>) == <<2, 3, 0, 0, 0, 0, 0, 0>>
+    assert copy_into(bin, <<2, 3>>, 1) == <<0, 2, 3, 0, 0, 0, 0, 0>>
+    assert copy_into(bin, <<2, 3>>, 0, 1) == <<3, 0, 0, 0, 0, 0, 0, 0>>
+    assert copy_into(bin, <<2, 3>>, 1, 1) == <<0, 3, 0, 0, 0, 0, 0, 0>>
+  end
 end
