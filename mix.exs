@@ -6,7 +6,7 @@ defmodule OnFlow.MixProject do
   def project do
     [
       app: :on_flow,
-      version: "0.7.0",
+      version: "0.8.0",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
