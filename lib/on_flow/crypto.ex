@@ -65,14 +65,11 @@ defmodule OnFlow.Crypto do
 
   @doc false
   def copy_into(destination, src, destination_offset \\ 0, start_index \\ 0) do
-    destination = :binary.bin_to_list(destination)
-    {prefix, destination} = :lists.split(destination_offset, destination)
+    prefix = :binary.part(destination, 0, destination_offset)
+    src = :binary.part(src, start_index, byte_size(src) - start_index)
+    suffix_length = byte_size(destination) - destination_offset - byte_size(src)
+    suffix = :binary.part(destination, destination_offset + byte_size(src), suffix_length)
 
-    src = :binary.bin_to_list(src)
-    {_, src} = :lists.split(start_index, src)
-
-    {_replaced, destination} = :lists.split(length(src), destination)
-
-    :binary.list_to_bin(prefix ++ src ++ destination)
+    prefix <> src <> suffix
   end
 end
