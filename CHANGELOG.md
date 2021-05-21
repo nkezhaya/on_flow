@@ -1,0 +1,39 @@
+# Changelog
+
+## 0.8.0
+
+  * Significant performance improvement with the binary `copy_into/4` function.
+
+## 0.7.0
+
+  * Fixed a bug when generating an account keypair that had multiple leading
+    `0x04` bytes
+
+## 0.6.0
+
+  * When waiting for sealed transactions, check the error field when returning
+    `:ok` or `:error`
+  * Fixed an issue with the rs pair not padding with null bytes appropriately
+  * Moved `generate_keys/0` to `OnFlow.Crypto`
+
+## 0.5.0
+
+  * Bug fixes for the event decoder
+
+## 0.4.0
+
+  * Added event decoder
+  * Decode events for transaction results
+  * `OnFlow.Channel` now takes a host option directly
+
+## 0.3.0
+
+  * Added :connect_on_start config option
+
+## 0.2.0
+
+  * Fixed various dependency issues with installation
+
+## 0.1.0
+
+  * First version!
