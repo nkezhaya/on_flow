@@ -12,7 +12,6 @@ defmodule OnFlow.Transaction do
 
   def payload(transaction) do
     [
-      # pad("FLOW-V0.0-transaction", 32, :right),
       transaction.script,
       transaction.arguments,
       pad(transaction.reference_block_id, 32),
