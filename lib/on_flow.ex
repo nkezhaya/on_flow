@@ -192,7 +192,8 @@ defmodule OnFlow do
     address = decode16(signer.address)
     private_key = decode16(signer.private_key)
     rlp = payload_canonical_form(transaction)
-    signer_signature = build_signature(address, private_key, rlp)
+    message = domain_tag() <> rlp
+    signer_signature = build_signature(address, private_key, message)
     signatures = transaction.payload_signatures ++ [signer_signature]
 
     %{transaction | payload_signatures: signatures}
@@ -208,7 +209,8 @@ defmodule OnFlow do
     address = decode16(signer.address)
     private_key = decode16(signer.private_key)
     rlp = envelope_canonical_form(transaction)
-    signer_signature = build_signature(address, private_key, rlp)
+    message = domain_tag() <> rlp
+    signer_signature = build_signature(address, private_key, message)
     signatures = transaction.envelope_signatures ++ [signer_signature]
 
     %{transaction | envelope_signatures: signatures}
@@ -224,6 +226,10 @@ defmodule OnFlow do
     else
       _ -> response
     end
+  end
+
+  defp domain_tag do
+    pad("FLOW-V0.0-transaction", 32, :right)
   end
 
   @doc """
