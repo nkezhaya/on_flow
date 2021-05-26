@@ -13,7 +13,7 @@ dependency errors, you should include them both and add `override: true` to your
 ```elixir
 def deps do
   [
-    {:on_flow, "~> 0.9"},
+    {:on_flow, "~> 0.10"},
     {:grpc, github: "elixir-grpc/grpc", override: true},
     {:cowlib, "~> 2.9", override: true}
   ]

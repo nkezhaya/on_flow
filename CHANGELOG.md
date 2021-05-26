@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0
+
+  * Introduced `TransactionResponse` struct to contain both the transaction as
+    well as the response to the network call querying the transaction result.
+
 ## 0.9.0
 
   * Prepend transaction domain tag.
