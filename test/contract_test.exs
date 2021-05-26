@@ -25,7 +25,7 @@ defmodule OnFlow.ContractTest do
 
     {:ok, response} = OnFlow.deploy_contract(keys, "HelloWorld", contract)
 
-    assert Enum.find(response.events, fn
+    assert Enum.find(response.result.events, fn
              %{"id" => "flow.AccountContractAdded"} -> true
              _ -> false
            end)

@@ -2,14 +2,13 @@ defmodule OnFlow do
   import __MODULE__.Channel, only: [get_channel: 0]
   import __MODULE__.{Util, Transaction}
 
-  alias __MODULE__.{Credentials, JSONCDC}
+  alias __MODULE__.{Credentials, JSONCDC, TransactionResponse}
 
   @type account() :: OnFlow.Entities.Account.t()
   @type address() :: binary()
   @type error() :: {:error, GRPC.RPCError.t()}
   @type hex_string() :: String.t()
-  @type transaction_result() ::
-          {:ok | :error, OnFlow.Access.TransactionResultResponse.t()} | {:error, :timeout}
+  @type transaction_result() :: {:ok | :error, TransactionResponse.t()} | {:error, :timeout}
 
   @doc """
   Creates a Flow account. Note that an existing account must be passed in as the
@@ -52,7 +51,7 @@ defmodule OnFlow do
       payer: credentials
     )
     |> case do
-      {:ok, %OnFlow.Access.TransactionResultResponse{events: events}} ->
+      {:ok, %{result: %OnFlow.Access.TransactionResultResponse{events: events}}} ->
         address =
           Enum.find_value(events, fn
             %{"id" => "flow.AccountCreated", "fields" => %{"address" => address}} -> address
@@ -221,8 +220,13 @@ defmodule OnFlow do
     request = OnFlow.Access.SendTransactionRequest.new(%{transaction: transaction})
     response = OnFlow.Access.AccessAPI.Stub.send_transaction(get_channel(), request)
 
-    with {:ok, %{id: id}} <- response, true <- wait_until_sealed? do
-      do_get_sealed_transaction_result(encode16(id))
+    with {:ok, %{id: id} = transaction} <- response do
+      if wait_until_sealed? do
+        {status, result} = do_get_sealed_transaction_result(encode16(id))
+        {status, %TransactionResponse{transaction: transaction, result: result}}
+      else
+        %TransactionResponse{transaction: transaction, result: nil}
+      end
     else
       _ -> response
     end
