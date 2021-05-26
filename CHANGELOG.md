@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+
+  * Prepend transaction domain tag.
+
 ## 0.8.0
 
   * Significant performance improvement with the binary `copy_into/4` function.
