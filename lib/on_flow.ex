@@ -15,14 +15,19 @@ defmodule OnFlow do
   first argument, since internally this is executed as a transaction on the
   existing account.
 
+  Available options are:
+
+    * `:gas_limit` - the maximum amount of gas to use for the transaction.
+    Defaults to 100.
+
   On success, it returns `{:ok, address}`, where `address` is a hex-encoded
   representation of the address.
 
   On failure, it returns `{:error, response}` or `{:error, :timeout}`.
   """
-  @spec create_account(Credentials.t(), hex_string()) ::
+  @spec create_account(Credentials.t(), hex_string(), keyword()) ::
           {:ok, hex_string()} | transaction_result()
-  def create_account(%Credentials{} = credentials, public_key) do
+  def create_account(%Credentials{} = credentials, public_key, opts \\ []) do
     encoded_account_key =
       OnFlow.Entities.AccountKey.new(%{
         public_key: decode16(public_key),
@@ -45,7 +50,13 @@ defmodule OnFlow do
       %{type: "Dictionary", value: []}
     ]
 
-    send_transaction(render_create_account(), credentials,
+    gas_limit =
+      case Keyword.fetch(opts, :gas_limit) do
+        {:ok, gas_limit} -> gas_limit
+        :error -> 100
+      end
+
+    send_transaction(render_create_account(), credentials, gas_limit,
       arguments: arguments,
       authorizers: credentials,
       payer: credentials
@@ -73,6 +84,8 @@ defmodule OnFlow do
 
   Options:
 
+    * `:gas_limit` - the maximum amount of gas to use for the transaction.
+    Defaults to 100.
     * `:update` - either `true` or `false` to update a previously deployed
     contract with the same name.
   """
@@ -84,6 +97,8 @@ defmodule OnFlow do
       %{"type" => "String", "value" => encode16(contract)}
     ]
 
+    gas_limit = Keyword.get(opts, :gas_limit, 100)
+
     case Keyword.fetch(opts, :update) do
       {:ok, update} when is_boolean(update) -> update
       :error -> false
@@ -92,7 +107,7 @@ defmodule OnFlow do
       true -> render_update_account_contract()
       false -> render_add_account_contract()
     end
-    |> send_transaction(credentials,
+    |> send_transaction(credentials, gas_limit,
       arguments: arguments,
       authorizers: credentials,
       payer: credentials
@@ -112,9 +127,17 @@ defmodule OnFlow do
     transaction is not sealed after 30 seconds, this will return `{:error,
     :timeout}`. Defaults to `true`.
   """
-  @spec send_transaction(String.t(), [Credentials.t()] | Credentials.t(), keyword()) ::
-          transaction_result()
-  def send_transaction(script, signers, opts \\ []) do
+  @spec send_transaction(
+          String.t(),
+          [Credentials.t()] | Credentials.t(),
+          non_neg_integer(),
+          keyword()
+        ) :: transaction_result()
+  def send_transaction(script, signers, gas_limit, opts \\ []) do
+    if not is_integer(gas_limit) or gas_limit < 0 do
+      raise "Invalid gas limit. You must specify a non-negative integer. Received: #{inspect(gas_limit)}"
+    end
+
     signers = to_list(signers)
     authorizers = to_list(Keyword.get(opts, :authorizers, []))
 
@@ -157,6 +180,7 @@ defmodule OnFlow do
     OnFlow.Entities.Transaction.new(%{
       arguments: parse_args(args),
       authorizers: authorizer_addresses,
+      gas_limit: gas_limit,
       payer: payer,
       proposal_key: proposal_key,
       reference_block_id: get_latest_block_id(),
