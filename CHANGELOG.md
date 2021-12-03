@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0
+
+  * Added `:gas_limit` options to transaction functions.
+
 ## 0.10.0
 
   * Introduced `TransactionResponse` struct to contain both the transaction as
