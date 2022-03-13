@@ -30,11 +30,11 @@ config :on_flow, host: "access.testnet.nodes.onflow.org:9000", connect_on_start:
 ```
 
 Replace the `:host` value with the location of the server you're using. Be sure
-to use the production server in your `config/prod.exs` if applicable. An
-optional `:metadata` config value can be set for GRPC calls as well.
+to use the production server in your `config/prod.exs` if applicable. For all
+config options, see the documentation for `OnFlow.Channel`.
 
 Alternatively, you can skip configuration and connect manually with:
 
 ```elixir
-OnFlow.Channel.connect("access.testnet.nodes.onflow.org:9000")
+OnFlow.Channel.connect("access.testnet.nodes.onflow.org:9000", opts)
 ```

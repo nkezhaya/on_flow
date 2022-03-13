@@ -1,4 +1,23 @@
 defmodule OnFlow.Channel do
+  @moduledoc """
+  Manages the GRPC channel state. Using this in production is not recommended.
+
+  Config options are:
+
+    * `:host` - the host to connect to
+    * `:connect_on_start` - `true` to start the channel on application start
+    * `:secure` - `true` to use HTTP/2.
+    * `:metadata` - metadata headers to send on connect.
+
+  Example:
+
+      config :on_flow,
+        host: "grpc.example.com:443",
+        connect_on_start: true,
+        secure: true,
+        metadata: [api_key: "123123"]
+  """
+
   use GenServer
 
   @doc false
@@ -78,7 +97,7 @@ defmodule OnFlow.Channel do
     request = OnFlow.Access.PingRequest.new()
 
     channel
-    |> OnFlow.Access.AccessAPI.Stub.ping(request, default_opts())
+    |> OnFlow.Access.AccessAPI.Stub.ping(request)
     |> handle_pong()
 
     schedule_ping()
@@ -96,10 +115,21 @@ defmodule OnFlow.Channel do
   end
 
   defp default_opts do
-    case metadata() do
-      nil -> []
-      metadata -> [metadata: metadata]
-    end
+    opts = []
+
+    opts =
+      case metadata() do
+        nil -> opts
+        metadata -> opts ++ [metadata: metadata]
+      end
+
+    opts =
+      case secure?() do
+        true -> opts ++ [cred: GRPC.Credential.new([])]
+        _ -> opts
+      end
+
+    opts
   end
 
   defp schedule_ping do
@@ -112,4 +142,5 @@ defmodule OnFlow.Channel do
   defp host, do: Application.get_env(:on_flow, :host)
   defp connect_on_start?, do: Application.get_env(:on_flow, :connect_on_start, true)
   defp metadata, do: Application.get_env(:on_flow, :metadata)
+  defp secure?, do: Application.get_env(:on_flow, :secure)
 end
