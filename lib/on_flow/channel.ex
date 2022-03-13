@@ -10,15 +10,15 @@ defmodule OnFlow.Channel do
   Connects to the GRPC server. Blocks the process until a connection is
   established.
   """
-  def connect(host \\ host()) do
-    GenServer.call(__MODULE__, {:connect, host})
+  def connect(host \\ host(), opts \\ default_opts()) do
+    GenServer.call(__MODULE__, {:connect, host, opts})
   end
 
   @doc """
   Connects to the GRPC server asynchronously.
   """
-  def connect_async(host \\ host()) do
-    GenServer.cast(__MODULE__, {:connect_async, host})
+  def connect_async(host \\ host(), opts \\ default_opts()) do
+    GenServer.cast(__MODULE__, {:connect_async, host, opts})
   end
 
   @doc """
@@ -46,7 +46,7 @@ defmodule OnFlow.Channel do
     channel =
       case arg do
         %GRPC.Channel{} -> arg
-        _ -> if connect?, do: new_channel(host()), else: nil
+        _ -> if connect?, do: new_channel(host(), default_opts()), else: nil
       end
 
     state = %{channel: channel, connected?: connect?}
@@ -55,8 +55,8 @@ defmodule OnFlow.Channel do
   end
 
   @impl true
-  def handle_call({:connect, host}, _from, state) do
-    channel = new_channel(host)
+  def handle_call({:connect, host, opts}, _from, state) do
+    channel = new_channel(host, opts)
     {:reply, channel, %{state | channel: channel}}
   end
 
@@ -65,8 +65,8 @@ defmodule OnFlow.Channel do
   end
 
   @impl true
-  def handle_cast({:connect_async, host}, state) do
-    {:noreply, %{state | channel: new_channel(host)}}
+  def handle_cast({:connect_async, host, opts}, state) do
+    {:noreply, %{state | channel: new_channel(host, opts)}}
   end
 
   @impl true
@@ -78,7 +78,7 @@ defmodule OnFlow.Channel do
     request = OnFlow.Access.PingRequest.new()
 
     channel
-    |> OnFlow.Access.AccessAPI.Stub.ping(request)
+    |> OnFlow.Access.AccessAPI.Stub.ping(request, default_opts())
     |> handle_pong()
 
     schedule_ping()
@@ -90,9 +90,16 @@ defmodule OnFlow.Channel do
     {:noreply, state}
   end
 
-  defp new_channel(host) do
-    {:ok, channel} = GRPC.Stub.connect(host)
+  defp new_channel(host, opts) do
+    {:ok, channel} = GRPC.Stub.connect(host, opts)
     channel
+  end
+
+  defp default_opts do
+    case metadata() do
+      nil -> []
+      metadata -> [metadata: metadata]
+    end
   end
 
   defp schedule_ping do
@@ -102,11 +109,7 @@ defmodule OnFlow.Channel do
   defp handle_pong({:ok, %OnFlow.Access.PingResponse{}}), do: :ok
   defp handle_pong(_error), do: connect_async()
 
-  defp host do
-    Application.get_env(:on_flow, :host)
-  end
-
-  defp connect_on_start? do
-    Application.get_env(:on_flow, :connect_on_start, true)
-  end
+  defp host, do: Application.get_env(:on_flow, :host)
+  defp connect_on_start?, do: Application.get_env(:on_flow, :connect_on_start, true)
+  defp metadata, do: Application.get_env(:on_flow, :metadata)
 end

@@ -26,12 +26,12 @@ Point OnFlow to the GRPC server by adding the following to your
 `config/config.exs`:
 
 ```elixir
-config :on_flow, host: "access.testnet.nodes.onflow.org:9000", connect_on_start:
-true
+config :on_flow, host: "access.testnet.nodes.onflow.org:9000", connect_on_start: true
 ```
 
 Replace the `:host` value with the location of the server you're using. Be sure
-to use the production server in your `config/prod.exs` if applicable.
+to use the production server in your `config/prod.exs` if applicable. An
+optional `:metadata` config value can be set for GRPC calls as well.
 
 Alternatively, you can skip configuration and connect manually with:
 
