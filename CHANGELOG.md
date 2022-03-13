@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.0
+
+  * Added `:metadata`, `:secure` config options. See `OnFlow.Channel`
+    documentation.
+
 ## 0.11.0
 
   * Added `:gas_limit` options to transaction functions.
