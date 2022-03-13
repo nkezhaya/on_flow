@@ -33,7 +33,7 @@ defmodule OnFlow.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:dialyxir, "~> 1.1", only: :dev},
+      {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:grpc, ">= 0.0.0"},
       {:cowlib, ">= 0.0.0"},
       {:jason, ">= 0.0.0"},
