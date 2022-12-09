@@ -1,5 +1,5 @@
 defmodule OnFlow.Crypto do
-  use Bitwise
+  import Bitwise
 
   @doc """
   Generates a key pair.
