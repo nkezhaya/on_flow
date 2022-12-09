@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.13.0
+
+  * Updated Protobuf generated files
+  * Replaced a call to `addPublicKey()` with `keys.add()` when creating a new
+    account
+
 ## 0.12.0
 
   * Added `:metadata`, `:secure` config options. See `OnFlow.Channel`
