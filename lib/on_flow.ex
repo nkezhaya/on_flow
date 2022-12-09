@@ -28,25 +28,8 @@ defmodule OnFlow do
   @spec create_account(Credentials.t(), hex_string(), keyword()) ::
           {:ok, hex_string()} | transaction_result()
   def create_account(%Credentials{} = credentials, public_key, opts \\ []) do
-    encoded_account_key =
-      OnFlow.Entities.AccountKey.new(%{
-        public_key: decode16(public_key),
-        weight: 1000,
-        sign_algo: 2,
-        hash_algo: 3
-      })
-      |> ExRLP.encode(encoding: :hex)
-
     arguments = [
-      %{
-        type: "Array",
-        value: [
-          %{
-            type: "String",
-            value: encoded_account_key
-          }
-        ]
-      },
+      %{type: "String", value: public_key},
       %{type: "Dictionary", value: []}
     ]
 
