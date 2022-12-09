@@ -1,4 +1,4 @@
-defmodule OnFlow.Entities.TransactionStatus do
+defmodule Entities.TransactionStatus do
   @moduledoc false
   use Protobuf, enum: true, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
@@ -10,7 +10,7 @@ defmodule OnFlow.Entities.TransactionStatus do
   field :EXPIRED, 5
 end
 
-defmodule OnFlow.Entities.Transaction.ProposalKey do
+defmodule Entities.Transaction.ProposalKey do
   @moduledoc false
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
@@ -19,7 +19,7 @@ defmodule OnFlow.Entities.Transaction.ProposalKey do
   field :sequence_number, 3, type: :uint64, json_name: "sequenceNumber"
 end
 
-defmodule OnFlow.Entities.Transaction.Signature do
+defmodule Entities.Transaction.Signature do
   @moduledoc false
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
@@ -28,7 +28,7 @@ defmodule OnFlow.Entities.Transaction.Signature do
   field :signature, 3, type: :bytes
 end
 
-defmodule OnFlow.Entities.Transaction do
+defmodule Entities.Transaction do
   @moduledoc false
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
@@ -36,17 +36,17 @@ defmodule OnFlow.Entities.Transaction do
   field :arguments, 2, repeated: true, type: :bytes
   field :reference_block_id, 3, type: :bytes, json_name: "referenceBlockId"
   field :gas_limit, 4, type: :uint64, json_name: "gasLimit"
-  field :proposal_key, 5, type: OnFlow.Entities.Transaction.ProposalKey, json_name: "proposalKey"
+  field :proposal_key, 5, type: Entities.Transaction.ProposalKey, json_name: "proposalKey"
   field :payer, 6, type: :bytes
   field :authorizers, 7, repeated: true, type: :bytes
 
   field :payload_signatures, 8,
     repeated: true,
-    type: OnFlow.Entities.Transaction.Signature,
+    type: Entities.Transaction.Signature,
     json_name: "payloadSignatures"
 
   field :envelope_signatures, 9,
     repeated: true,
-    type: OnFlow.Entities.Transaction.Signature,
+    type: Entities.Transaction.Signature,
     json_name: "envelopeSignatures"
 end

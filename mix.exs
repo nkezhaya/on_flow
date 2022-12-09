@@ -24,7 +24,7 @@ defmodule OnFlow.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :eex],
+      extra_applications: [:logger, :eex, :protobuf],
       mod: {OnFlow.Application, []}
     ]
   end
@@ -34,6 +34,7 @@ defmodule OnFlow.MixProject do
     [
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
+      {:protobuf, "~> 0.11.0"},
       {:grpc, ">= 0.0.0"},
       {:cowlib, ">= 0.0.0"},
       {:jason, ">= 0.0.0"},

@@ -1,23 +1,14 @@
-defmodule OnFlow.Entities.Account.ContractsEntry do
-  @moduledoc false
-  use Protobuf, map: true, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
-
-  field :key, 1, type: :string
-  field :value, 2, type: :bytes
-end
-
-defmodule OnFlow.Entities.Account do
+defmodule Entities.Account do
   @moduledoc false
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :address, 1, type: :bytes
   field :balance, 2, type: :uint64
   field :code, 3, type: :bytes
-  field :keys, 4, repeated: true, type: OnFlow.Entities.AccountKey
-  field :contracts, 5, repeated: true, type: OnFlow.Entities.Account.ContractsEntry, map: true
+  field :keys, 4, repeated: true, type: Entities.AccountKey
 end
 
-defmodule OnFlow.Entities.AccountKey do
+defmodule Entities.AccountKey do
   @moduledoc false
   use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
@@ -27,5 +18,4 @@ defmodule OnFlow.Entities.AccountKey do
   field :hash_algo, 4, type: :uint32, json_name: "hashAlgo"
   field :weight, 5, type: :uint32
   field :sequence_number, 6, type: :uint32, json_name: "sequenceNumber"
-  field :revoked, 7, type: :bool
 end

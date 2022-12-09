@@ -1,299 +1,201 @@
 defmodule OnFlow.Access.PingRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-  @type t :: %__MODULE__{}
-
-  defstruct []
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 end
 
 defmodule OnFlow.Access.PingResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-  @type t :: %__MODULE__{}
-
-  defstruct []
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 end
 
 defmodule OnFlow.Access.GetLatestBlockHeaderRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          is_sealed: boolean
-        }
-
-  defstruct [:is_sealed]
-
-  field :is_sealed, 1, type: :bool
+  field :is_sealed, 1, type: :bool, json_name: "isSealed"
 end
 
 defmodule OnFlow.Access.GetBlockHeaderByIDRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          id: binary
-        }
-
-  defstruct [:id]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :id, 1, type: :bytes
 end
 
 defmodule OnFlow.Access.GetBlockHeaderByHeightRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          height: non_neg_integer
-        }
-
-  defstruct [:height]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :height, 1, type: :uint64
 end
 
 defmodule OnFlow.Access.BlockHeaderResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          block: OnFlow.Entities.BlockHeader.t() | nil
-        }
-
-  defstruct [:block]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :block, 1, type: OnFlow.Entities.BlockHeader
+  field :block_status, 2, type: OnFlow.Entities.BlockStatus, json_name: "blockStatus", enum: true
 end
 
 defmodule OnFlow.Access.GetLatestBlockRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          is_sealed: boolean
-        }
-
-  defstruct [:is_sealed]
-
-  field :is_sealed, 1, type: :bool
+  field :is_sealed, 1, type: :bool, json_name: "isSealed"
+  field :full_block_response, 2, type: :bool, json_name: "fullBlockResponse"
 end
 
 defmodule OnFlow.Access.GetBlockByIDRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          id: binary
-        }
-
-  defstruct [:id]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :id, 1, type: :bytes
+  field :full_block_response, 2, type: :bool, json_name: "fullBlockResponse"
 end
 
 defmodule OnFlow.Access.GetBlockByHeightRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          height: non_neg_integer
-        }
-
-  defstruct [:height]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :height, 1, type: :uint64
+  field :full_block_response, 2, type: :bool, json_name: "fullBlockResponse"
 end
 
 defmodule OnFlow.Access.BlockResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          block: OnFlow.Entities.Block.t() | nil
-        }
-
-  defstruct [:block]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :block, 1, type: OnFlow.Entities.Block
+  field :block_status, 2, type: OnFlow.Entities.BlockStatus, json_name: "blockStatus", enum: true
 end
 
 defmodule OnFlow.Access.GetCollectionByIDRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          id: binary
-        }
-
-  defstruct [:id]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :id, 1, type: :bytes
 end
 
 defmodule OnFlow.Access.CollectionResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          collection: OnFlow.Entities.Collection.t() | nil
-        }
-
-  defstruct [:collection]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :collection, 1, type: OnFlow.Entities.Collection
 end
 
 defmodule OnFlow.Access.SendTransactionRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          transaction: OnFlow.Entities.Transaction.t() | nil
-        }
-
-  defstruct [:transaction]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :transaction, 1, type: OnFlow.Entities.Transaction
 end
 
 defmodule OnFlow.Access.SendTransactionResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          id: binary
-        }
-
-  defstruct [:id]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :id, 1, type: :bytes
 end
 
 defmodule OnFlow.Access.GetTransactionRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          id: binary
-        }
-
-  defstruct [:id]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :id, 1, type: :bytes
 end
 
+defmodule OnFlow.Access.GetTransactionByIndexRequest do
+  @moduledoc false
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
+
+  field :block_id, 1, type: :bytes, json_name: "blockId"
+  field :index, 2, type: :uint32
+end
+
+defmodule OnFlow.Access.GetTransactionsByBlockIDRequest do
+  @moduledoc false
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
+
+  field :block_id, 1, type: :bytes, json_name: "blockId"
+end
+
+defmodule OnFlow.Access.TransactionResultsResponse do
+  @moduledoc false
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
+
+  field :transaction_results, 1,
+    repeated: true,
+    type: OnFlow.Access.TransactionResultResponse,
+    json_name: "transactionResults"
+end
+
+defmodule OnFlow.Access.TransactionsResponse do
+  @moduledoc false
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
+
+  field :transactions, 1, repeated: true, type: OnFlow.Entities.Transaction
+end
+
 defmodule OnFlow.Access.TransactionResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          transaction: OnFlow.Entities.Transaction.t() | nil
-        }
-
-  defstruct [:transaction]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :transaction, 1, type: OnFlow.Entities.Transaction
 end
 
 defmodule OnFlow.Access.TransactionResultResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          status: OnFlow.Entities.TransactionStatus.t(),
-          status_code: non_neg_integer,
-          error_message: String.t(),
-          events: [OnFlow.Entities.Event.t()],
-          block_id: binary
-        }
-
-  defstruct [:status, :status_code, :error_message, :events, :block_id]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :status, 1, type: OnFlow.Entities.TransactionStatus, enum: true
-  field :status_code, 2, type: :uint32
-  field :error_message, 3, type: :string
+  field :status_code, 2, type: :uint32, json_name: "statusCode"
+  field :error_message, 3, type: :string, json_name: "errorMessage"
   field :events, 4, repeated: true, type: OnFlow.Entities.Event
-  field :block_id, 5, type: :bytes
+  field :block_id, 5, type: :bytes, json_name: "blockId"
+  field :transaction_id, 6, type: :bytes, json_name: "transactionId"
+  field :collection_id, 7, type: :bytes, json_name: "collectionId"
+  field :block_height, 8, type: :uint64, json_name: "blockHeight"
 end
 
 defmodule OnFlow.Access.GetAccountRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          address: binary
-        }
-
-  defstruct [:address]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :address, 1, type: :bytes
 end
 
 defmodule OnFlow.Access.GetAccountResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          account: OnFlow.Entities.Account.t() | nil
-        }
-
-  defstruct [:account]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :account, 1, type: OnFlow.Entities.Account
 end
 
 defmodule OnFlow.Access.GetAccountAtLatestBlockRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          address: binary
-        }
-
-  defstruct [:address]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :address, 1, type: :bytes
 end
 
 defmodule OnFlow.Access.AccountResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          account: OnFlow.Entities.Account.t() | nil
-        }
-
-  defstruct [:account]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :account, 1, type: OnFlow.Entities.Account
 end
 
 defmodule OnFlow.Access.GetAccountAtBlockHeightRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          address: binary,
-          block_height: non_neg_integer
-        }
-
-  defstruct [:address, :block_height]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :address, 1, type: :bytes
-  field :block_height, 2, type: :uint64
+  field :block_height, 2, type: :uint64, json_name: "blockHeight"
 end
 
 defmodule OnFlow.Access.ExecuteScriptAtLatestBlockRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          script: binary,
-          arguments: [binary]
-        }
-
-  defstruct [:script, :arguments]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :script, 1, type: :bytes
   field :arguments, 2, repeated: true, type: :bytes
@@ -301,160 +203,104 @@ end
 
 defmodule OnFlow.Access.ExecuteScriptAtBlockIDRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          block_id: binary,
-          script: binary,
-          arguments: [binary]
-        }
-
-  defstruct [:block_id, :script, :arguments]
-
-  field :block_id, 1, type: :bytes
+  field :block_id, 1, type: :bytes, json_name: "blockId"
   field :script, 2, type: :bytes
   field :arguments, 3, repeated: true, type: :bytes
 end
 
 defmodule OnFlow.Access.ExecuteScriptAtBlockHeightRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          block_height: non_neg_integer,
-          script: binary,
-          arguments: [binary]
-        }
-
-  defstruct [:block_height, :script, :arguments]
-
-  field :block_height, 1, type: :uint64
+  field :block_height, 1, type: :uint64, json_name: "blockHeight"
   field :script, 2, type: :bytes
   field :arguments, 3, repeated: true, type: :bytes
 end
 
 defmodule OnFlow.Access.ExecuteScriptResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          value: binary
-        }
-
-  defstruct [:value]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :value, 1, type: :bytes
 end
 
 defmodule OnFlow.Access.GetEventsForHeightRangeRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          type: String.t(),
-          start_height: non_neg_integer,
-          end_height: non_neg_integer
-        }
-
-  defstruct [:type, :start_height, :end_height]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :type, 1, type: :string
-  field :start_height, 2, type: :uint64
-  field :end_height, 3, type: :uint64
+  field :start_height, 2, type: :uint64, json_name: "startHeight"
+  field :end_height, 3, type: :uint64, json_name: "endHeight"
 end
 
 defmodule OnFlow.Access.GetEventsForBlockIDsRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          type: String.t(),
-          block_ids: [binary]
-        }
-
-  defstruct [:type, :block_ids]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :type, 1, type: :string
-  field :block_ids, 2, repeated: true, type: :bytes
+  field :block_ids, 2, repeated: true, type: :bytes, json_name: "blockIds"
 end
 
 defmodule OnFlow.Access.EventsResponse.Result do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          block_id: binary,
-          block_height: non_neg_integer,
-          events: [OnFlow.Entities.Event.t()],
-          block_timestamp: Google.Protobuf.Timestamp.t() | nil
-        }
-
-  defstruct [:block_id, :block_height, :events, :block_timestamp]
-
-  field :block_id, 1, type: :bytes
-  field :block_height, 2, type: :uint64
+  field :block_id, 1, type: :bytes, json_name: "blockId"
+  field :block_height, 2, type: :uint64, json_name: "blockHeight"
   field :events, 3, repeated: true, type: OnFlow.Entities.Event
-  field :block_timestamp, 4, type: Google.Protobuf.Timestamp
+  field :block_timestamp, 4, type: Google.Protobuf.Timestamp, json_name: "blockTimestamp"
 end
 
 defmodule OnFlow.Access.EventsResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          results: [OnFlow.Access.EventsResponse.Result.t()]
-        }
-
-  defstruct [:results]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :results, 1, repeated: true, type: OnFlow.Access.EventsResponse.Result
 end
 
 defmodule OnFlow.Access.GetNetworkParametersRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-  @type t :: %__MODULE__{}
-
-  defstruct []
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 end
 
 defmodule OnFlow.Access.GetNetworkParametersResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
-  @type t :: %__MODULE__{
-          chain_id: String.t()
-        }
-
-  defstruct [:chain_id]
-
-  field :chain_id, 1, type: :string
+  field :chain_id, 1, type: :string, json_name: "chainId"
 end
 
 defmodule OnFlow.Access.GetLatestProtocolStateSnapshotRequest do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-  @type t :: %__MODULE__{}
-
-  defstruct []
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 end
 
 defmodule OnFlow.Access.ProtocolStateSnapshotResponse do
   @moduledoc false
-  use Protobuf, syntax: :proto3
-
-  @type t :: %__MODULE__{
-          serializedSnapshot: binary
-        }
-
-  defstruct [:serializedSnapshot]
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
 
   field :serializedSnapshot, 1, type: :bytes
 end
 
+defmodule OnFlow.Access.GetExecutionResultForBlockIDRequest do
+  @moduledoc false
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
+
+  field :block_id, 1, type: :bytes, json_name: "blockId"
+end
+
+defmodule OnFlow.Access.ExecutionResultForBlockIDResponse do
+  @moduledoc false
+  use Protobuf, protoc_gen_elixir_version: "0.11.0", syntax: :proto3
+
+  field :execution_result, 1, type: OnFlow.Entities.ExecutionResult, json_name: "executionResult"
+end
+
 defmodule OnFlow.Access.AccessAPI.Service do
   @moduledoc false
-  use GRPC.Service, name: "flow.access.AccessAPI"
+  use GRPC.Service, name: "flow.access.AccessAPI", protoc_gen_elixir_version: "0.11.0"
 
   rpc :Ping, OnFlow.Access.PingRequest, OnFlow.Access.PingResponse
 
@@ -483,6 +329,18 @@ defmodule OnFlow.Access.AccessAPI.Service do
   rpc :GetTransactionResult,
       OnFlow.Access.GetTransactionRequest,
       OnFlow.Access.TransactionResultResponse
+
+  rpc :GetTransactionResultByIndex,
+      OnFlow.Access.GetTransactionByIndexRequest,
+      OnFlow.Access.TransactionResultResponse
+
+  rpc :GetTransactionResultsByBlockID,
+      OnFlow.Access.GetTransactionsByBlockIDRequest,
+      OnFlow.Access.TransactionResultsResponse
+
+  rpc :GetTransactionsByBlockID,
+      OnFlow.Access.GetTransactionsByBlockIDRequest,
+      OnFlow.Access.TransactionsResponse
 
   rpc :GetAccount, OnFlow.Access.GetAccountRequest, OnFlow.Access.GetAccountResponse
 
@@ -519,6 +377,10 @@ defmodule OnFlow.Access.AccessAPI.Service do
   rpc :GetLatestProtocolStateSnapshot,
       OnFlow.Access.GetLatestProtocolStateSnapshotRequest,
       OnFlow.Access.ProtocolStateSnapshotResponse
+
+  rpc :GetExecutionResultForBlockID,
+      OnFlow.Access.GetExecutionResultForBlockIDRequest,
+      OnFlow.Access.ExecutionResultForBlockIDResponse
 end
 
 defmodule OnFlow.Access.AccessAPI.Stub do
